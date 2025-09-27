@@ -1,23 +1,36 @@
+// components/Screen.tsx
 import React from "react";
-import { ViewStyle } from "react-native";
+import { KeyboardAvoidingView, Platform, ScrollView, ViewStyle } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 type Props = {
   children: React.ReactNode;
-  style?: ViewStyle | ViewStyle[];
-  edges?: ("top" | "right" | "bottom" | "left")[];
   backgroundColor?: string;
+  style?: ViewStyle | ViewStyle[];
+  bottomPadding?: number;
 };
 
 export default function Screen({
   children,
-  style,
-  edges = ["top", "left", "right"],
   backgroundColor = "#000",
+  style,
+  bottomPadding = 24,
 }: Props) {
   return (
-    <SafeAreaView edges={edges} style={[{ flex: 1, backgroundColor }, style]}>
-      {children}
+    <SafeAreaView style={{ flex: 1, backgroundColor }} edges={["top", "left", "right"]}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        keyboardVerticalOffset={0}
+      >
+        <ScrollView
+          keyboardShouldPersistTaps="handled"
+          contentInsetAdjustmentBehavior="always"
+          contentContainerStyle={[{ paddingBottom: bottomPadding }, style as any]}
+        >
+          {children}
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }

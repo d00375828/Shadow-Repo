@@ -1,7 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 
-// ---- Theme (dark/light using your palette) ----
+// ---- Fixed (Dark) Theme ----
 const DARK_COLORS = {
   bg: "#000",
   fg: "#fff",
@@ -12,18 +12,7 @@ const DARK_COLORS = {
   box: "#111",
   border: "#1b1b1b",
 };
-const LIGHT_COLORS = {
-  bg: "#fff",
-  fg: "#000",
-  muted: "#666",
-  accent: "#4cff00",
-  peach: "#ffddba",
-  onAccent: "#000",
-  box: "#f1f1f1",
-  border: "#e1e1e1",
-};
 
-// ---- Types ----
 export type Criteria = {
   clarity: boolean;
   empathy: boolean;
@@ -60,9 +49,14 @@ export type PrevGoal = {
 };
 
 interface AppState {
+  // Auth
+  isAuthed: boolean;
+  signIn: (username: string) => Promise<void>;
+  signOut: () => Promise<void>;
+
   // Stats
   sessions: number;
-  avgScore: number; // kept for other screens; Training ignores this
+  avgScore: number;
   streak: number;
   lastSubmitDate: number | null;
 
@@ -76,7 +70,7 @@ interface AppState {
   removePrevGoal: (id: number) => void;
   setManagerNotes: (text: string) => void;
 
-  // Legacy (kept for compatibility)
+  // Legacy (kept)
   goals: string[];
   addGoal: (g: string) => void;
   achievements: { title: string; done: boolean }[];
@@ -93,7 +87,6 @@ interface AppState {
   setProfile: (p: { name: string; role: string; org: string; avatarUri?: string }) => void;
 }
 
-// ---- Defaults/Contexts ----
 const defaultCriteria: Criteria = {
   clarity: true,
   empathy: true,
@@ -102,22 +95,27 @@ const defaultCriteria: Criteria = {
   productKnowledge: false,
 };
 
-const AppCtx = createContext<AppState | null>(null);
+// Keep the Theme context shape but lock to dark
 const ThemeCtx = createContext<{
   colors: typeof DARK_COLORS;
-  isDark: boolean;
-  toggleTheme: () => void;
+  isDark: true;
+  toggleTheme: () => void; // no-op
 } | null>(null);
+
+const AppCtx = createContext<AppState | null>(null);
 
 // ---- Helpers ----
 const DAY_MS = 24 * 60 * 60 * 1000;
 function epochDay(ts: number) {
-  // Truncate to midnight UTC; swap to local-time calc if you prefer local-day streaks.
+  // Midnight UTC buckets (switch to local math if you prefer local-day streaks)
   return Math.floor(ts / DAY_MS);
 }
 
 // ---- Provider ----
 export function AppProvider({ children }: { children: React.ReactNode }) {
+  // Auth
+  const [isAuthed, setIsAuthed] = useState(false);
+
   // Stats
   const [sessions, setSessions] = useState(0);
   const [avgScore, setAvgScore] = useState(NaN);
@@ -129,7 +127,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [prevGoals, setPrevGoals] = useState<PrevGoal[]>([]);
   const [managerNotes, setManagerNotes] = useState("");
 
-  // Legacy
+  // Legacy (kept)
   const [goals, setGoals] = useState<string[]>([]);
   const [achievements, setAchievements] = useState([
     { title: "First recording", done: false },
@@ -141,31 +139,30 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [criteria, setCriteria] = useState<Criteria>(defaultCriteria);
   const [history, setHistory] = useState<(Grade & { audioUri?: string | null })[]>([]);
 
-  // Profile & theme
+  // Profile
   const [profile, _setProfile] = useState<{ name: string; role: string; org: string; avatarUri?: string }>({
     name: "",
     role: "",
     org: "",
     avatarUri: undefined,
   });
-  const [isDark, setIsDark] = useState(true);
 
-  // Hydrate
+  // ---- Hydrate from storage ----
   useEffect(() => {
     (async () => {
       try {
         const [
-          S, A, H, C, P, T,
+          IA, S, A, H, C, P,
           STR, LSD,
           GT, PG, MN,
           GLEG, ACH
         ] = await Promise.all([
+          AsyncStorage.getItem("isAuthed"),
           AsyncStorage.getItem("sessions"),
           AsyncStorage.getItem("avgScore"),
           AsyncStorage.getItem("history"),
           AsyncStorage.getItem("criteria"),
           AsyncStorage.getItem("profile"),
-          AsyncStorage.getItem("theme"),
 
           AsyncStorage.getItem("streak"),
           AsyncStorage.getItem("lastSubmitDate"),
@@ -178,15 +175,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           AsyncStorage.getItem("achievements"),
         ]);
 
+        if (IA) setIsAuthed(IA === "1");
         if (S) setSessions(Number(S));
         if (A) setAvgScore(Number(A));
         if (H) setHistory(JSON.parse(H));
         if (C) setCriteria(JSON.parse(C));
         if (P) _setProfile(JSON.parse(P));
-        if (T) setIsDark(T === "dark");
 
         if (STR) setStreak(Number(STR));
-
         if (LSD) {
           const n = Number(LSD);
           setLastSubmitDate(Number.isFinite(n) ? n : null);
@@ -199,18 +195,19 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         if (GLEG) setGoals(JSON.parse(GLEG));
         if (ACH) setAchievements(JSON.parse(ACH));
       } catch {
-        // ignore storage errors
+        // ignore
       }
     })();
   }, []);
 
-  // Persist
+  // ---- Persist slices ----
+  useEffect(() => { AsyncStorage.setItem("isAuthed", isAuthed ? "1" : "0"); }, [isAuthed]);
+
   useEffect(() => { AsyncStorage.setItem("sessions", String(sessions)); }, [sessions]);
   useEffect(() => { AsyncStorage.setItem("avgScore", String(avgScore)); }, [avgScore]);
   useEffect(() => { AsyncStorage.setItem("history", JSON.stringify(history)); }, [history]);
   useEffect(() => { AsyncStorage.setItem("criteria", JSON.stringify(criteria)); }, [criteria]);
   useEffect(() => { AsyncStorage.setItem("profile", JSON.stringify(profile)); }, [profile]);
-  useEffect(() => { AsyncStorage.setItem("theme", isDark ? "dark" : "light"); }, [isDark]);
 
   useEffect(() => { AsyncStorage.setItem("streak", String(streak)); }, [streak]);
   useEffect(() => { AsyncStorage.setItem("lastSubmitDate", lastSubmitDate != null ? String(lastSubmitDate) : ""); }, [lastSubmitDate]);
@@ -222,6 +219,18 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => { AsyncStorage.setItem("goals", JSON.stringify(goals)); }, [goals]);
   useEffect(() => { AsyncStorage.setItem("achievements", JSON.stringify(achievements)); }, [achievements]);
 
+  // ---- Auth ----
+  async function signIn(username: string) {
+    setIsAuthed(true);
+    if (username && !profile.name) _setProfile((p) => ({ ...p, name: username }));
+  }
+
+  async function signOut() {
+    setIsAuthed(false);
+    // (Optional) also clear runtime state if you want a “fresh” app after logout
+    // setHistory([]); setGoalsToday([]); setPrevGoals([]); etc.
+  }
+
   // ---- Goals (new) ----
   function addTodayGoal(text: string) {
     const trimmed = text.trim();
@@ -230,16 +239,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setGoalsToday((x) => [item, ...x]);
   }
 
-  // Visual toggle only (used to flash green check)
+  // Visual toggle only (for green check flash)
   function toggleTodayGoal(id: number) {
     setGoalsToday((list) => list.map((g) => (g.id === id ? { ...g, done: !g.done } : g)));
   }
 
-  // After the short delay, move to accomplished
+  // After short delay, move to accomplished
   function completeTodayGoal(id: number) {
     setGoalsToday((list) => {
       const item = list.find((g) => g.id === id);
-      if (!item || !item.done) return list; // only move if marked done
+      if (!item || !item.done) return list;
       setPrevGoals((p) => [{ id: item.id, text: item.text, completedAt: Date.now() }, ...p]);
       return list.filter((g) => g.id !== id);
     });
@@ -257,7 +266,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   function updateCriteria(c: Criteria) { setCriteria(c); }
   function setProfile(p: { name: string; role: string; org: string; avatarUri?: string }) { _setProfile(p); }
 
-  // ---- Grading entrypoint (also advances streak) ----
+  // ---- Grading + streak ----
   async function addRecording(r: RecordingInput): Promise<Grade> {
     const score = gradeFrom(r.transcript, criteria);
     const g: Grade = {
@@ -273,23 +282,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const newSessions = sessions + 1; setSessions(newSessions);
     const newAvg = isFinite(avgScore) ? (avgScore * sessions + score) / newSessions : score; setAvgScore(newAvg);
 
-    // Streak logic
+    // Streak (daily)
     const now = Date.now();
     const today = epochDay(now);
     const last = lastSubmitDate != null ? epochDay(lastSubmitDate) : null;
-
-    if (last === null) {
-      setStreak(1);
-      setLastSubmitDate(now);
-    } else if (last === today) {
-      setLastSubmitDate(now); // already counted today
-    } else if (last === today - 1) {
-      setStreak((s) => s + 1);
-      setLastSubmitDate(now);
-    } else {
-      setStreak(1);
-      setLastSubmitDate(now);
-    }
+    if (last === null) { setStreak(1); setLastSubmitDate(now); }
+    else if (last === today) { setLastSubmitDate(now); }
+    else if (last === today - 1) { setStreak((s) => s + 1); setLastSubmitDate(now); }
+    else { setStreak(1); setLastSubmitDate(now); }
 
     // legacy achievements
     setAchievements((arr) => arr.map((a) => (a.title === "First recording" ? { ...a, done: true } : a)));
@@ -299,14 +299,17 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     return g;
   }
 
-  const colors = isDark ? DARK_COLORS : LIGHT_COLORS;
+  const colors = DARK_COLORS; // fixed dark
 
   const value: AppState = useMemo(
     () => ({
+      // auth
+      isAuthed, signIn, signOut,
+
       // stats
       sessions, avgScore, streak, lastSubmitDate,
 
-      // goals (new)
+      // goals
       goalsToday, prevGoals, managerNotes,
       addTodayGoal, toggleTodayGoal, completeTodayGoal, removePrevGoal, setManagerNotes,
 
@@ -320,6 +323,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       profile, setProfile,
     }),
     [
+      isAuthed,
       sessions, avgScore, streak, lastSubmitDate,
       goalsToday, prevGoals, managerNotes,
       goals, achievements,
@@ -328,7 +332,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   );
 
   return (
-    <ThemeCtx.Provider value={{ colors, isDark, toggleTheme: () => setIsDark((s) => !s) }}>
+    <ThemeCtx.Provider value={{ colors, isDark: true as const, toggleTheme: () => {} }}>
       <AppCtx.Provider value={value}>{children}</AppCtx.Provider>
     </ThemeCtx.Provider>
   );

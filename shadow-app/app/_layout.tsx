@@ -1,21 +1,15 @@
-import { Slot } from "expo-router";
-import { StatusBar } from "expo-status-bar";
+// app/_layout.tsx
 import React from "react";
+import { Stack } from "expo-router";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { AppProvider, useTheme } from "../context/AppContext";
-
-function ThemedBar() {
-  const { isDark } = useTheme();
-  return <StatusBar style={isDark ? "light" : "dark"} />;
-}
+import { AppProvider } from "../context/AppContext";
 
 export default function RootLayout() {
   return (
-    <AppProvider>
-      <SafeAreaProvider>
-        <ThemedBar />
-        <Slot />
-      </SafeAreaProvider>
-    </AppProvider>
+    <SafeAreaProvider>
+      <AppProvider>
+        <Stack screenOptions={{ headerShown: false }} />
+      </AppProvider>
+    </SafeAreaProvider>
   );
 }

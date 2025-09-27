@@ -1,71 +1,155 @@
-import { Picker } from "@react-native-picker/picker";
-import * as ImagePicker from "expo-image-picker";
+// Settings Page
+
 import React, { useState } from "react";
-import { Image, TextInput, View } from "react-native";
-import AppButton from "../../components/AppButton";
+import { Modal, Pressable, Text, TextInput, View, useWindowDimensions } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import Card from "../../components/Card";
 import Screen from "../../components/Screen";
 import SectionTitle from "../../components/SectionTitle";
 import { useApp, useTheme } from "../../context/AppContext";
+import { router } from "expo-router";
+import useIsLandscape from "../../hooks/useIsLandscape";
+
+const ROLES = ["Sales Rep", "Account Executive", "SDR", "Manager", "Custom"] as const;
 
 export default function Settings() {
-  const { colors, isDark, toggleTheme } = useTheme() as any;
-  const { profile, setProfile } = useApp();
-  const [name, setName] = useState(profile.name);
-  const [role, setRole] = useState(profile.role || "Member");
-  const [org, setOrg] = useState(profile.org || "");
-  const [avatarUri, setAvatarUri] = useState<string | undefined>(profile.avatarUri);
+  const { colors } = useTheme();
+  const { profile, setProfile, signOut } = useApp();
+  const isLandscape = useIsLandscape();
+  const { width } = useWindowDimensions();
+  const cardWidth = isLandscape ? Math.min(560, Math.max(380, width * 0.5)) : undefined;
 
-  async function pickAvatar() {
-    const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, quality: 0.7 });
-    if (!res.canceled && res.assets?.[0]?.uri) setAvatarUri(res.assets[0].uri);
+  const [roleOpen, setRoleOpen] = useState(false);
+
+  function update<K extends keyof typeof profile>(key: K, value: (typeof profile)[K]) {
+    setProfile({ ...profile, [key]: value });
   }
 
-  function save() {
-    setProfile({ name, role, org, avatarUri });
+  async function onLogout() {
+    await signOut();
+    router.replace("/");
   }
 
   return (
-    <Screen backgroundColor={colors.bg} style={{ padding: 16 }}>
-      <Card bg={colors.box}>
+    <Screen backgroundColor={colors.bg} style={{ padding: 16, alignItems: "center" }}>
+      <Card bg={colors.box} style={{ gap: 12, width: cardWidth ?? "100%" }}>
         <SectionTitle color={colors.fg}>Profile</SectionTitle>
 
-        <View style={{ alignItems: "center", marginBottom: 12 }}>
-          <AppButton title={avatarUri ? "Change Photo" : "Add Photo"} onPress={pickAvatar} color={"#222"} fg={colors.muted} />
-          {avatarUri ? <Image source={{ uri: avatarUri }} style={{ width: 96, height: 96, borderRadius: 48, marginTop: 8 }} /> : null}
+        {/* Name */}
+        <View style={{ gap: 6 }}>
+          <Text style={{ color: colors.muted, fontSize: 12 }}>Name</Text>
+          <TextInput
+            value={profile.name}
+            onChangeText={(t) => update("name", t)}
+            placeholder="Your name"
+            placeholderTextColor={colors.muted}
+            style={{
+              backgroundColor: "#0e0e0e",
+              color: colors.fg,
+              paddingHorizontal: 12,
+              paddingVertical: 10,
+              borderRadius: 10,
+              borderWidth: 1,
+              borderColor: colors.border,
+            }}
+          />
         </View>
 
-        <TextInput
-          value={name}
-          onChangeText={setName}
-          placeholder="Full name"
-          placeholderTextColor={colors.muted}
-          style={{ backgroundColor: "#111", color: colors.fg, borderRadius: 10, padding: 12, borderWidth: 1, borderColor: "#222", marginBottom: 8 }}
-        />
-
-        <View style={{ backgroundColor: "#111", borderRadius: 10, borderWidth: 1, borderColor: "#222", marginBottom: 8 }}>
-          <Picker selectedValue={role} onValueChange={(v) => setRole(String(v))} dropdownIconColor={colors.fg} style={{ color: colors.fg }}>
-            <Picker.Item label="Member" value="Member" />
-            <Picker.Item label="Sales" value="Sales" />
-            <Picker.Item label="Support" value="Support" />
-            <Picker.Item label="Interviewing" value="Interviewing" />
-            <Picker.Item label="Manager" value="Manager" />
-          </Picker>
+        {/* Organization */}
+        <View style={{ gap: 6 }}>
+          <Text style={{ color: colors.muted, fontSize: 12 }}>Organization</Text>
+          <TextInput
+            value={profile.org}
+            onChangeText={(t) => update("org", t)}
+            placeholder="Company / Team"
+            placeholderTextColor={colors.muted}
+            style={{
+              backgroundColor: "#0e0e0e",
+              color: colors.fg,
+              paddingHorizontal: 12,
+              paddingVertical: 10,
+              borderRadius: 10,
+              borderWidth: 1,
+              borderColor: colors.border,
+            }}
+          />
         </View>
 
-        <TextInput
-          value={org}
-          onChangeText={setOrg}
-          placeholder="Organization"
-          placeholderTextColor={colors.muted}
-          style={{ backgroundColor: "#111", color: colors.fg, borderRadius: 10, padding: 12, borderWidth: 1, borderColor: "#222" }}
-        />
-
-        <View style={{ flexDirection: "row", gap: 10, marginTop: 12 }}>
-          <AppButton title="Save" onPress={save} color={colors.accent} fg={colors.onAccent} />
-          <AppButton title={isDark ? "Light Mode" : "Dark Mode"} onPress={toggleTheme} color={"#333"} fg={colors.fg} />
+        {/* Role (modal selector, high-contrast) */}
+        <View style={{ gap: 6 }}>
+          <Text style={{ color: colors.muted, fontSize: 12 }}>Role</Text>
+          <Pressable
+            onPress={() => setRoleOpen(true)}
+            style={{
+              backgroundColor: "#0e0e0e",
+              borderColor: colors.border,
+              borderWidth: 1,
+              paddingHorizontal: 12,
+              paddingVertical: 12,
+              borderRadius: 10,
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}
+          >
+            <Text style={{ color: colors.fg, fontWeight: "600" }}>
+              {profile.role || "Select role"}
+            </Text>
+            <Ionicons name="chevron-down" size={18} color={colors.muted} />
+          </Pressable>
         </View>
+
+        {/* Logout */}
+        <Pressable
+          onPress={onLogout}
+          style={{
+            backgroundColor: "#300",
+            borderWidth: 1,
+            borderColor: "#500",
+            paddingVertical: 12,
+            borderRadius: 10,
+            alignItems: "center",
+            marginTop: 8,
+          }}
+        >
+          <Text style={{ color: "#fff", fontWeight: "800" }}>Log Out</Text>
+        </Pressable>
       </Card>
+
+      {/* Role modal */}
+      <Modal visible={roleOpen} animationType="fade" transparent onRequestClose={() => setRoleOpen(false)}>
+        <Pressable onPress={() => setRoleOpen(false)} style={{ flex: 1, backgroundColor: "#000a", justifyContent: "center", padding: 20 }}>
+          <Pressable
+            onPress={() => {}}
+            style={{ backgroundColor: colors.box, borderRadius: 14, padding: 12, borderWidth: 1, borderColor: colors.border }}
+          >
+            <Text style={{ color: colors.fg, fontSize: 16, fontWeight: "800", textAlign: "center", marginVertical: 8 }}>
+              Select Role
+            </Text>
+            {ROLES.map((r) => {
+              const selected = r === profile.role;
+              return (
+                <Pressable
+                  key={r}
+                  onPress={() => { update("role", r); setRoleOpen(false); }}
+                  style={{
+                    paddingVertical: 12,
+                    paddingHorizontal: 10,
+                    borderTopWidth: 1,
+                    borderTopColor: colors.border,
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                  }}
+                >
+                  <Text style={{ color: colors.fg, fontSize: 15 }}>{r}</Text>
+                  {selected ? <Ionicons name="checkmark" size={18} color={colors.accent} /> : null}
+                </Pressable>
+              );
+            })}
+          </Pressable>
+        </Pressable>
+      </Modal>
     </Screen>
   );
 }

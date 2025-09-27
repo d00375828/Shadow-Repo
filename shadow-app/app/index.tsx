@@ -1,15 +1,23 @@
-// Log in page
+// Login screen
+
+import { useState } from "react";
 import { router } from "expo-router";
-import React, { useState } from "react";
-import { Modal, Pressable, Text, TextInput, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import AppButton from "../components/AppButton";
-import Screen from "../components/Screen";
-import { useTheme } from "../context/AppContext";
+import { Modal, Pressable, Text, TextInput, View, useWindowDimensions } from "react-native";
+import { useApp, useTheme } from "../context/AppContext";
+import useIsLandscape from "../hooks/useIsLandscape";
+
+const faqs = [
+  { q: "Forgot password?", a: "Contact your admin to reset your credentials." },
+  { q: "Need help?", a: "Email support@shadow.example or check the docs." },
+];
 
 export default function Login() {
   const { colors } = useTheme();
-  const insets = useSafeAreaInsets();
+  const { signIn } = useApp();
+  const isLandscape = useIsLandscape();
+  const { width } = useWindowDimensions();
+
+  const cardWidth = isLandscape ? Math.min(520, Math.max(380, width * 0.5)) : undefined;
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -18,25 +26,38 @@ export default function Login() {
   const [open, setOpen] = useState(false);
   const [expanded, setExpanded] = useState<number | null>(null);
 
-  const faqs = [
-    { q: "How is my audio used?", a: "Only for your training session; nothing is uploaded in this demo." },
-    { q: "Can I reset my password?", a: "This prototype uses local auth; no reset flow yet." },
-    { q: "Who do I contact?", a: "support@shadow.ai" },
-  ];
-
-  function signIn() {
+  async function onSignIn() {
     if (!username.trim() || !password.trim()) {
       setError("Enter username and password");
       return;
     }
     setError("");
+    await signIn(username.trim());
     router.replace("/(tabs)/home");
   }
 
   return (
-    <Screen backgroundColor={colors.bg}>
-      <View style={{ flex: 1, padding: 24, justifyContent: "center" }}>
-        <Text style={{ color: colors.fg, fontSize: 36, fontWeight: "800", letterSpacing: 6, textAlign: "center", marginBottom: 48 }}>
+    <View
+      style={{
+        flex: 1,
+        backgroundColor: colors.bg,
+        paddingHorizontal: isLandscape ? 24 : 24,
+        paddingVertical: isLandscape ? 16 : 24,
+        justifyContent: "center",
+        alignItems: "center",
+      }}
+    >
+      <View style={{ width: cardWidth ?? "100%", maxWidth: 560 }}>
+        <Text
+          style={{
+            color: colors.fg,
+            fontSize: 36,
+            fontWeight: "800",
+            letterSpacing: 6,
+            textAlign: "center",
+            marginBottom: 32,
+          }}
+        >
           SHADOW
         </Text>
 
@@ -49,7 +70,6 @@ export default function Login() {
             autoCapitalize="none"
             style={{ backgroundColor: colors.box, color: colors.fg, padding: 14, borderRadius: 12, borderWidth: 1, borderColor: colors.border }}
           />
-
           <View style={{ position: "relative" }}>
             <TextInput
               value={password}
@@ -66,18 +86,29 @@ export default function Login() {
 
           {!!error && <Text style={{ color: "#ff6666", fontSize: 13 }}>{error}</Text>}
 
-          <AppButton title="Sign In" onPress={signIn} color={colors.accent} fg={colors.onAccent} style={{ marginTop: 8 }} />
+          <Pressable
+            onPress={onSignIn}
+            style={({ pressed }) => ({
+              backgroundColor: colors.accent,
+              opacity: pressed ? 0.85 : 1,
+              padding: 14,
+              borderRadius: 12,
+              alignItems: "center",
+              marginTop: 8,
+            })}
+          >
+            <Text style={{ fontWeight: "700", color: colors.onAccent }}>Sign In</Text>
+          </Pressable>
         </View>
-
-        <Pressable onPress={() => setOpen(true)} style={{ position: "absolute", right: 16, bottom: 24 }}>
-          <Text style={{ color: colors.peach, fontSize: 28, fontWeight: "900" }}>?</Text>
-        </Pressable>
       </View>
 
-      {/* Transparent FAQ modal with safe padding inside card */}
+      <Pressable onPress={() => setOpen(true)} style={{ position: "absolute", right: 16, bottom: 24 }}>
+        <Text style={{ color: colors.peach, fontSize: 28, fontWeight: "900" }}>?</Text>
+      </Pressable>
+
       <Modal visible={open} transparent animationType="fade" onRequestClose={() => setOpen(false)}>
-        <View style={{ flex: 1, backgroundColor: "#000a", justifyContent: "center", paddingHorizontal: 24 }}>
-          <View style={{ backgroundColor: colors.box, borderRadius: 16, padding: 20, gap: 8, paddingTop: 20 + insets.top * 0.25, paddingBottom: 12 + insets.bottom * 0.25 }}>
+        <View style={{ flex: 1, backgroundColor: "#000a", justifyContent: "center", padding: 24 }}>
+          <View style={{ backgroundColor: colors.box, borderRadius: 16, padding: 20, gap: 8 }}>
             <Text style={{ color: colors.fg, fontSize: 18, fontWeight: "700", textAlign: "center" }}>Help & Contact</Text>
             {faqs.map((f, i) => (
               <View key={i} style={{ borderTopWidth: i ? 1 : 0, borderTopColor: colors.border, paddingTop: i ? 8 : 0 }}>
@@ -93,6 +124,6 @@ export default function Login() {
           </View>
         </View>
       </Modal>
-    </Screen>
+    </View>
   );
 }
