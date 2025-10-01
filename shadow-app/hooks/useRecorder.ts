@@ -1,31 +1,58 @@
-import { Audio } from "expo-av";
+// hooks/useRecorder.ts
 import { useEffect, useRef, useState } from "react";
 import { Alert, Animated } from "react-native";
+import {
+  useAudioRecorder,
+  RecordingPresets,
+  setAudioModeAsync,
+  AudioModule,
+} from "expo-audio";
 
 export function useRecorder() {
-  const [recording, setRecording] = useState<Audio.Recording | null>(null);
+  // expo-audio recorder
+  const recorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
+
   const [uri, setUri] = useState<string | null>(null);
   const [seconds, setSeconds] = useState(0);
+  const [isRecording, setIsRecording] = useState(false);
 
-  const timerRef = useRef<number| null>(null);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // pulse animation
+  // pulse animation (mirrors your old behavior)
   const pulse = useRef(new Animated.Value(1)).current;
   const loopRef = useRef<Animated.CompositeAnimation | null>(null);
 
+  // Permissions
   useEffect(() => {
     (async () => {
-      const { status } = await Audio.requestPermissionsAsync();
-      if (status !== "granted") Alert.alert("Microphone permission is required to record.");
+      const status = await AudioModule.requestRecordingPermissionsAsync();
+      if (!status.granted) {
+        Alert.alert("Microphone permission is required to record.");
+      } else {
+        // sensible audio mode for recording
+        await setAudioModeAsync({
+          playsInSilentMode: true,
+          allowsRecording: true,
+        });
+      }
     })();
   }, []);
 
+  // Animate while recording
   useEffect(() => {
-    if (recording) {
+    if (isRecording) {
       loopRef.current = Animated.loop(
         Animated.sequence([
-          Animated.timing(pulse, { toValue: 1.4, duration: 600, useNativeDriver: true }),
-          Animated.timing(pulse, { toValue: 1, duration: 600, useNativeDriver: true }),
+          Animated.timing(pulse, {
+            toValue: 1.4,
+            duration: 600,
+            useNativeDriver: true,
+          }),
+          Animated.timing(pulse, {
+            toValue: 1,
+            duration: 600,
+            useNativeDriver: true,
+          }),
         ])
       );
       loopRef.current.start();
@@ -38,53 +65,58 @@ export function useRecorder() {
       loopRef.current?.stop();
       loopRef.current = null;
     };
-  }, [recording, pulse]);
+  }, [isRecording, pulse]);
 
   function startTimer() {
     setSeconds(0);
-    if (timerRef.current !== null) {
-      clearInterval(timerRef.current);
-    }
-    timerRef.current = setInterval(() => setSeconds((s) => s + 1), 1000) as unknown as number;
+    if (timerRef.current) clearInterval(timerRef.current);
+    timerRef.current = setInterval(() => setSeconds((s) => s + 1), 1000);
   }
-  
+
   function stopTimer() {
-    if (timerRef.current !== null) {
-      clearInterval(timerRef.current);
-      timerRef.current = null;
-    }
+    if (timerRef.current) clearInterval(timerRef.current);
+    timerRef.current = null;
   }
 
   async function start() {
-    const { status } = await Audio.getPermissionsAsync();
-    if (status !== "granted") {
-      Alert.alert("Microphone permission is required to record.");
-      return;
+    try {
+      const status = await AudioModule.requestRecordingPermissionsAsync();
+      if (!status.granted) {
+        Alert.alert("Microphone permission is required to record.");
+        return;
+      }
+      await recorder.prepareToRecordAsync();
+      recorder.record();
+      setIsRecording(true);
+      startTimer();
+    } catch (e: any) {
+      Alert.alert("Start error", String(e?.message ?? e));
     }
-    await Audio.setAudioModeAsync({ allowsRecordingIOS: true, playsInSilentModeIOS: true });
-    const rec = new Audio.Recording();
-    await rec.prepareToRecordAsync(Audio.RecordingOptionsPresets.HIGH_QUALITY);
-    await rec.startAsync();
-    setRecording(rec);
-    startTimer();
   }
 
   async function stop() {
-    if (!recording) return;
-    await recording.stopAndUnloadAsync();
-    const u = recording.getURI();
-    setUri(u ?? null);
-    setRecording(null);
-    stopTimer();
+    try {
+      if (!isRecording) return;
+      await recorder.stop();
+      setIsRecording(false);
+      stopTimer();
+      setUri(recorder.uri ?? null);
+    } catch (e: any) {
+      Alert.alert("Stop error", String(e?.message ?? e));
+    }
   }
 
   return {
-    isRecording: Boolean(recording),
+    isRecording,
     uri,
     seconds,
     pulse,
     start,
     stop,
-    reset: () => setUri(null),
+    reset: () => {
+      setUri(null);
+      setSeconds(0);
+      setIsRecording(false);
+    },
   };
 }

@@ -1,7 +1,14 @@
 // Settings Page
 
 import React, { useState } from "react";
-import { Modal, Pressable, Text, TextInput, View, useWindowDimensions } from "react-native";
+import {
+  Modal,
+  Pressable,
+  Text,
+  TextInput,
+  View,
+  useWindowDimensions,
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import Card from "../../components/Card";
 import Screen from "../../components/Screen";
@@ -10,18 +17,29 @@ import { useApp, useTheme } from "../../context/AppContext";
 import { router } from "expo-router";
 import useIsLandscape from "../../hooks/useIsLandscape";
 
-const ROLES = ["Sales Rep", "Account Executive", "SDR", "Manager", "Custom"] as const;
+const ROLES = [
+  "Sales Rep",
+  "Account Executive",
+  "SDR",
+  "Manager",
+  "Custom",
+] as const;
 
 export default function Settings() {
   const { colors } = useTheme();
   const { profile, setProfile, signOut } = useApp();
   const isLandscape = useIsLandscape();
   const { width } = useWindowDimensions();
-  const cardWidth = isLandscape ? Math.min(560, Math.max(380, width * 0.5)) : undefined;
+  const cardWidth = isLandscape
+    ? Math.min(560, Math.max(380, width * 0.5))
+    : undefined;
 
   const [roleOpen, setRoleOpen] = useState(false);
 
-  function update<K extends keyof typeof profile>(key: K, value: (typeof profile)[K]) {
+  function update<K extends keyof typeof profile>(
+    key: K,
+    value: (typeof profile)[K]
+  ) {
     setProfile({ ...profile, [key]: value });
   }
 
@@ -31,7 +49,10 @@ export default function Settings() {
   }
 
   return (
-    <Screen backgroundColor={colors.bg} style={{ padding: 16, alignItems: "center" }}>
+    <Screen
+      backgroundColor={colors.bg}
+      style={{ padding: 16, alignItems: "center" }}
+    >
       <Card bg={colors.box} style={{ gap: 12, width: cardWidth ?? "100%" }}>
         <SectionTitle color={colors.fg}>Profile</SectionTitle>
 
@@ -57,7 +78,9 @@ export default function Settings() {
 
         {/* Organization */}
         <View style={{ gap: 6 }}>
-          <Text style={{ color: colors.muted, fontSize: 12 }}>Organization</Text>
+          <Text style={{ color: colors.muted, fontSize: 12 }}>
+            Organization
+          </Text>
           <TextInput
             value={profile.org}
             onChangeText={(t) => update("org", t)}
@@ -117,13 +140,40 @@ export default function Settings() {
       </Card>
 
       {/* Role modal */}
-      <Modal visible={roleOpen} animationType="fade" transparent onRequestClose={() => setRoleOpen(false)}>
-        <Pressable onPress={() => setRoleOpen(false)} style={{ flex: 1, backgroundColor: "#000a", justifyContent: "center", padding: 20 }}>
+      <Modal
+        visible={roleOpen}
+        animationType="fade"
+        transparent
+        onRequestClose={() => setRoleOpen(false)}
+      >
+        <Pressable
+          onPress={() => setRoleOpen(false)}
+          style={{
+            flex: 1,
+            backgroundColor: "#000a",
+            justifyContent: "center",
+            padding: 20,
+          }}
+        >
           <Pressable
             onPress={() => {}}
-            style={{ backgroundColor: colors.box, borderRadius: 14, padding: 12, borderWidth: 1, borderColor: colors.border }}
+            style={{
+              backgroundColor: colors.box,
+              borderRadius: 14,
+              padding: 12,
+              borderWidth: 1,
+              borderColor: colors.border,
+            }}
           >
-            <Text style={{ color: colors.fg, fontSize: 16, fontWeight: "800", textAlign: "center", marginVertical: 8 }}>
+            <Text
+              style={{
+                color: colors.fg,
+                fontSize: 16,
+                fontWeight: "800",
+                textAlign: "center",
+                marginVertical: 8,
+              }}
+            >
               Select Role
             </Text>
             {ROLES.map((r) => {
@@ -131,7 +181,10 @@ export default function Settings() {
               return (
                 <Pressable
                   key={r}
-                  onPress={() => { update("role", r); setRoleOpen(false); }}
+                  onPress={() => {
+                    update("role", r);
+                    setRoleOpen(false);
+                  }}
                   style={{
                     paddingVertical: 12,
                     paddingHorizontal: 10,
@@ -143,7 +196,13 @@ export default function Settings() {
                   }}
                 >
                   <Text style={{ color: colors.fg, fontSize: 15 }}>{r}</Text>
-                  {selected ? <Ionicons name="checkmark" size={18} color={colors.accent} /> : null}
+                  {selected ? (
+                    <Ionicons
+                      name="checkmark"
+                      size={18}
+                      color={colors.accent}
+                    />
+                  ) : null}
                 </Pressable>
               );
             })}

@@ -1,18 +1,37 @@
-// Recording Page
+// app/(tabs)/home.tsx
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
-import { Alert, Animated, Modal, Pressable, Text, TextInput, View } from "react-native";
+import {
+  Alert,
+  Animated,
+  Modal,
+  Pressable,
+  Text,
+  TextInput,
+  View,
+  KeyboardAvoidingView,
+  Platform,
+} from "react-native";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 import { useApp, useTheme } from "../../context/AppContext";
 import useIsLandscape from "../../hooks/useIsLandscape";
-import {useAudioRecorder,RecordingPresets,setAudioModeAsync,AudioModule,useAudioPlayer,} from "expo-audio";
+import {
+  useAudioRecorder,
+  RecordingPresets,
+  setAudioModeAsync,
+  AudioModule,
+  useAudioPlayer,
+} from "expo-audio";
 
 export default function Home() {
   const { colors } = useTheme();
   const { addRecording } = useApp();
   const isLandscape = useIsLandscape();
 
-  // Recorder (expo-audio)
   const recorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
 
   const [transcript, setTranscript] = useState("");
@@ -31,8 +50,16 @@ export default function Home() {
     if (isRecording) {
       loopRef.current = Animated.loop(
         Animated.sequence([
-          Animated.timing(pulse, { toValue: 1.4, duration: 600, useNativeDriver: true }),
-          Animated.timing(pulse, { toValue: 1, duration: 600, useNativeDriver: true }),
+          Animated.timing(pulse, {
+            toValue: 1.4,
+            duration: 600,
+            useNativeDriver: true,
+          }),
+          Animated.timing(pulse, {
+            toValue: 1,
+            duration: 600,
+            useNativeDriver: true,
+          }),
         ])
       );
       loopRef.current.start();
@@ -55,7 +82,10 @@ export default function Home() {
         Alert.alert("Microphone permission is required to record.");
         return;
       }
-      await setAudioModeAsync({ playsInSilentMode: true, allowsRecording: true });
+      await setAudioModeAsync({
+        playsInSilentMode: true,
+        allowsRecording: true,
+      });
     })();
   }, []);
 
@@ -88,7 +118,7 @@ export default function Home() {
       stopTimer();
       const u = recorder.uri ?? null;
       setUri(u);
-      if (!transcript) setTranscript("[Auto transcript placeholder. Edit before submit.]");
+      if (!transcript) setTranscript("[Auto transcript placeholder.]");
       setShowReview(true);
     } catch (e: any) {
       Alert.alert("Stop error", String(e?.message ?? e));
@@ -104,10 +134,22 @@ export default function Home() {
   }
 
   function confirmDelete() {
-    Alert.alert("Delete recording?", "This will discard audio and transcript.", [
-      { text: "Cancel", style: "cancel" },
-      { text: "Delete", style: "destructive", onPress: () => { setShowReview(false); setTranscript(""); setUri(null); } },
-    ]);
+    Alert.alert(
+      "Delete recording?",
+      "This will discard audio and transcript.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: () => {
+            setShowReview(false);
+            setTranscript("");
+            setUri(null);
+          },
+        },
+      ]
+    );
   }
 
   return (
@@ -155,7 +197,13 @@ export default function Home() {
               color={isRecording ? "#fff" : colors.onAccent}
               style={{ marginBottom: 6 }}
             />
-            <Text style={{ color: isRecording ? "#fff" : colors.onAccent, fontWeight: "900", fontSize: 16 }}>
+            <Text
+              style={{
+                color: isRecording ? "#fff" : colors.onAccent,
+                fontWeight: "900",
+                fontSize: 16,
+              }}
+            >
               {isRecording ? "STOP" : "RECORD"}
             </Text>
           </Pressable>
@@ -174,23 +222,78 @@ export default function Home() {
 
           <Text style={{ color: colors.fg, fontSize: 18 }}>
             {isRecording
-              ? `${Math.floor(seconds / 60).toString().padStart(2, "0")}:${(seconds % 60).toString().padStart(2, "0")}`
+              ? `${Math.floor(seconds / 60)
+                  .toString()
+                  .padStart(2, "0")}:${(seconds % 60)
+                  .toString()
+                  .padStart(2, "0")}`
               : "Tap to record"}
           </Text>
         </View>
 
-        {isLandscape ? <View style={{ width: 1, height: 160, backgroundColor: colors.border }} /> : null}
+        {isLandscape ? (
+          <View
+            style={{ width: 1, height: 160, backgroundColor: colors.border }}
+          />
+        ) : null}
       </View>
 
       {/* Review Recording */}
-      <Modal visible={showReview} animationType="slide" onRequestClose={() => setShowReview(false)}>
-        <View
-          style={{
-            flex: 1,
-            backgroundColor: colors.bg,
-            paddingHorizontal: isLandscape ? 24 : 16,
-            paddingVertical: isLandscape ? 12 : 16,
-          }}
+      <ReviewModal
+        visible={showReview}
+        onClose={() => setShowReview(false)}
+        colors={colors}
+        isLandscape={isLandscape}
+        transcript={transcript}
+        setTranscript={setTranscript}
+        uri={uri}
+        onSubmit={handleSubmit}
+        onDelete={confirmDelete}
+      />
+    </View>
+  );
+}
+
+function ReviewModal(props: {
+  visible: boolean;
+  onClose: () => void;
+  colors: any;
+  isLandscape: boolean;
+  transcript: string;
+  setTranscript: (t: string) => void;
+  uri: string | null;
+  onSubmit: () => void;
+  onDelete: () => void;
+}) {
+  const {
+    visible,
+    onClose,
+    colors,
+    isLandscape,
+    transcript,
+    setTranscript,
+    uri,
+    onSubmit,
+    onDelete,
+  } = props;
+  const insets = useSafeAreaInsets();
+
+  return (
+    <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
+      {/* We pad manually with insets to guarantee it clears the Dynamic Island & home indicator */}
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: colors.bg,
+          paddingTop: insets.top + 8,
+          paddingBottom: insets.bottom + 8,
+          paddingLeft: isLandscape ? 24 : 16,
+          paddingRight: isLandscape ? 24 : 16,
+        }}
+      >
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
         >
           <Text
             style={{
@@ -199,13 +302,11 @@ export default function Home() {
               fontWeight: "700",
               marginBottom: 12,
               textAlign: "center",
-              paddingTop: 8,
             }}
           >
             Review Recording
           </Text>
 
-          {/* Simple playback */}
           <View style={{ alignItems: "center", marginBottom: 8 }}>
             {uri ? <AudioPlayer uri={uri} color={colors} /> : null}
           </View>
@@ -224,28 +325,45 @@ export default function Home() {
               padding: 12,
               textAlignVertical: "top",
               marginTop: 8,
+              borderWidth: 1,
+              borderColor: colors.border,
             }}
           />
 
-          <View style={{ flexDirection: "row", gap: 12, marginTop: 12, justifyContent: "center" }}>
-            <Pressable onPress={() => setShowReview(false)} style={{ backgroundColor: colors.box, padding: 12, borderRadius: 10 }}>
-              <Text style={{ color: colors.fg }}>Edit More</Text>
+          <View
+            style={{
+              flexDirection: "row",
+              gap: 12,
+              marginTop: 12,
+              justifyContent: "center",
+            }}
+          >
+            <Pressable
+              onPress={onSubmit}
+              style={{
+                backgroundColor: colors.accent,
+                padding: 12,
+                borderRadius: 10,
+              }}
+            >
+              <Text style={{ color: colors.onAccent, fontWeight: "700" }}>
+                Submit
+              </Text>
             </Pressable>
-            <Pressable onPress={handleSubmit} style={{ backgroundColor: colors.accent, padding: 12, borderRadius: 10 }}>
-              <Text style={{ color: colors.onAccent, fontWeight: "700" }}>Submit</Text>
-            </Pressable>
-            <Pressable onPress={confirmDelete} style={{ backgroundColor: "#400", padding: 12, borderRadius: 10 }}>
+            <Pressable
+              onPress={onDelete}
+              style={{ backgroundColor: "#400", padding: 12, borderRadius: 10 }}
+            >
               <Text style={{ color: "#fff" }}>Delete</Text>
             </Pressable>
           </View>
-        </View>
-      </Modal>
-    </View>
+        </KeyboardAvoidingView>
+      </View>
+    </Modal>
   );
 }
 
 function AudioPlayer({ uri, color }: { uri: string; color: any }) {
-  // Minimal player using expo-audio
   const player = useAudioPlayer(uri);
   const [playing, setPlaying] = useState(false);
 
@@ -254,19 +372,14 @@ function AudioPlayer({ uri, color }: { uri: string; color: any }) {
       if (!playing) {
         await player.play();
         setPlaying(true);
-        // naive finished handler: poll or rely on a short timeout;
-        // for production, wire into player status callback when available.
       } else {
         await player.pause();
         setPlaying(false);
       }
-    } catch {
-      // no-op
-    }
+    } catch {}
   }
 
   useEffect(() => {
-    // If source changes, reset button UI
     setPlaying(false);
   }, [uri]);
 

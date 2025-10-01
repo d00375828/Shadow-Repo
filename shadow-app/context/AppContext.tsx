@@ -1,5 +1,11 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 
 // ---- Fixed (Dark) Theme ----
 const DARK_COLORS = {
@@ -65,8 +71,8 @@ interface AppState {
   prevGoals: PrevGoal[];
   managerNotes: string;
   addTodayGoal: (text: string) => void;
-  toggleTodayGoal: (id: number) => void;        // visual toggle only
-  completeTodayGoal: (id: number) => void;      // move to accomplished
+  toggleTodayGoal: (id: number) => void; // visual toggle only
+  completeTodayGoal: (id: number) => void; // move to accomplished
   removePrevGoal: (id: number) => void;
   setManagerNotes: (text: string) => void;
 
@@ -84,7 +90,12 @@ interface AppState {
 
   // Profile
   profile: { name: string; role: string; org: string; avatarUri?: string };
-  setProfile: (p: { name: string; role: string; org: string; avatarUri?: string }) => void;
+  setProfile: (p: {
+    name: string;
+    role: string;
+    org: string;
+    avatarUri?: string;
+  }) => void;
 }
 
 const defaultCriteria: Criteria = {
@@ -137,10 +148,17 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   // Grading
   const [criteria, setCriteria] = useState<Criteria>(defaultCriteria);
-  const [history, setHistory] = useState<(Grade & { audioUri?: string | null })[]>([]);
+  const [history, setHistory] = useState<
+    (Grade & { audioUri?: string | null })[]
+  >([]);
 
   // Profile
-  const [profile, _setProfile] = useState<{ name: string; role: string; org: string; avatarUri?: string }>({
+  const [profile, _setProfile] = useState<{
+    name: string;
+    role: string;
+    org: string;
+    avatarUri?: string;
+  }>({
     name: "",
     role: "",
     org: "",
@@ -151,29 +169,25 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     (async () => {
       try {
-        const [
-          IA, S, A, H, C, P,
-          STR, LSD,
-          GT, PG, MN,
-          GLEG, ACH
-        ] = await Promise.all([
-          AsyncStorage.getItem("isAuthed"),
-          AsyncStorage.getItem("sessions"),
-          AsyncStorage.getItem("avgScore"),
-          AsyncStorage.getItem("history"),
-          AsyncStorage.getItem("criteria"),
-          AsyncStorage.getItem("profile"),
+        const [IA, S, A, H, C, P, STR, LSD, GT, PG, MN, GLEG, ACH] =
+          await Promise.all([
+            AsyncStorage.getItem("isAuthed"),
+            AsyncStorage.getItem("sessions"),
+            AsyncStorage.getItem("avgScore"),
+            AsyncStorage.getItem("history"),
+            AsyncStorage.getItem("criteria"),
+            AsyncStorage.getItem("profile"),
 
-          AsyncStorage.getItem("streak"),
-          AsyncStorage.getItem("lastSubmitDate"),
+            AsyncStorage.getItem("streak"),
+            AsyncStorage.getItem("lastSubmitDate"),
 
-          AsyncStorage.getItem("goalsToday"),
-          AsyncStorage.getItem("prevGoals"),
-          AsyncStorage.getItem("managerNotes"),
+            AsyncStorage.getItem("goalsToday"),
+            AsyncStorage.getItem("prevGoals"),
+            AsyncStorage.getItem("managerNotes"),
 
-          AsyncStorage.getItem("goals"),
-          AsyncStorage.getItem("achievements"),
-        ]);
+            AsyncStorage.getItem("goals"),
+            AsyncStorage.getItem("achievements"),
+          ]);
 
         if (IA) setIsAuthed(IA === "1");
         if (S) setSessions(Number(S));
@@ -201,28 +215,58 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   // ---- Persist slices ----
-  useEffect(() => { AsyncStorage.setItem("isAuthed", isAuthed ? "1" : "0"); }, [isAuthed]);
+  useEffect(() => {
+    AsyncStorage.setItem("isAuthed", isAuthed ? "1" : "0");
+  }, [isAuthed]);
 
-  useEffect(() => { AsyncStorage.setItem("sessions", String(sessions)); }, [sessions]);
-  useEffect(() => { AsyncStorage.setItem("avgScore", String(avgScore)); }, [avgScore]);
-  useEffect(() => { AsyncStorage.setItem("history", JSON.stringify(history)); }, [history]);
-  useEffect(() => { AsyncStorage.setItem("criteria", JSON.stringify(criteria)); }, [criteria]);
-  useEffect(() => { AsyncStorage.setItem("profile", JSON.stringify(profile)); }, [profile]);
+  useEffect(() => {
+    AsyncStorage.setItem("sessions", String(sessions));
+  }, [sessions]);
+  useEffect(() => {
+    AsyncStorage.setItem("avgScore", String(avgScore));
+  }, [avgScore]);
+  useEffect(() => {
+    AsyncStorage.setItem("history", JSON.stringify(history));
+  }, [history]);
+  useEffect(() => {
+    AsyncStorage.setItem("criteria", JSON.stringify(criteria));
+  }, [criteria]);
+  useEffect(() => {
+    AsyncStorage.setItem("profile", JSON.stringify(profile));
+  }, [profile]);
 
-  useEffect(() => { AsyncStorage.setItem("streak", String(streak)); }, [streak]);
-  useEffect(() => { AsyncStorage.setItem("lastSubmitDate", lastSubmitDate != null ? String(lastSubmitDate) : ""); }, [lastSubmitDate]);
+  useEffect(() => {
+    AsyncStorage.setItem("streak", String(streak));
+  }, [streak]);
+  useEffect(() => {
+    AsyncStorage.setItem(
+      "lastSubmitDate",
+      lastSubmitDate != null ? String(lastSubmitDate) : ""
+    );
+  }, [lastSubmitDate]);
 
-  useEffect(() => { AsyncStorage.setItem("goalsToday", JSON.stringify(goalsToday)); }, [goalsToday]);
-  useEffect(() => { AsyncStorage.setItem("prevGoals", JSON.stringify(prevGoals)); }, [prevGoals]);
-  useEffect(() => { AsyncStorage.setItem("managerNotes", JSON.stringify(managerNotes)); }, [managerNotes]);
+  useEffect(() => {
+    AsyncStorage.setItem("goalsToday", JSON.stringify(goalsToday));
+  }, [goalsToday]);
+  useEffect(() => {
+    AsyncStorage.setItem("prevGoals", JSON.stringify(prevGoals));
+  }, [prevGoals]);
+  useEffect(() => {
+    AsyncStorage.setItem("managerNotes", JSON.stringify(managerNotes));
+  }, [managerNotes]);
 
-  useEffect(() => { AsyncStorage.setItem("goals", JSON.stringify(goals)); }, [goals]);
-  useEffect(() => { AsyncStorage.setItem("achievements", JSON.stringify(achievements)); }, [achievements]);
+  useEffect(() => {
+    AsyncStorage.setItem("goals", JSON.stringify(goals));
+  }, [goals]);
+  useEffect(() => {
+    AsyncStorage.setItem("achievements", JSON.stringify(achievements));
+  }, [achievements]);
 
   // ---- Auth ----
   async function signIn(username: string) {
     setIsAuthed(true);
-    if (username && !profile.name) _setProfile((p) => ({ ...p, name: username }));
+    if (username && !profile.name)
+      _setProfile((p) => ({ ...p, name: username }));
   }
 
   async function signOut() {
@@ -235,13 +279,20 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   function addTodayGoal(text: string) {
     const trimmed = text.trim();
     if (!trimmed) return;
-    const item: TodayGoal = { id: Date.now(), text: trimmed, done: false, createdAt: Date.now() };
+    const item: TodayGoal = {
+      id: Date.now(),
+      text: trimmed,
+      done: false,
+      createdAt: Date.now(),
+    };
     setGoalsToday((x) => [item, ...x]);
   }
 
   // Visual toggle only (for green check flash)
   function toggleTodayGoal(id: number) {
-    setGoalsToday((list) => list.map((g) => (g.id === id ? { ...g, done: !g.done } : g)));
+    setGoalsToday((list) =>
+      list.map((g) => (g.id === id ? { ...g, done: !g.done } : g))
+    );
   }
 
   // After short delay, move to accomplished
@@ -249,7 +300,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setGoalsToday((list) => {
       const item = list.find((g) => g.id === id);
       if (!item || !item.done) return list;
-      setPrevGoals((p) => [{ id: item.id, text: item.text, completedAt: Date.now() }, ...p]);
+      setPrevGoals((p) => [
+        { id: item.id, text: item.text, completedAt: Date.now() },
+        ...p,
+      ]);
       return list.filter((g) => g.id !== id);
     });
   }
@@ -259,12 +313,25 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }
 
   // ---- Legacy helpers (kept) ----
-  function addGoal(g: string) { setGoals((x) => [g, ...x]); }
-  function toggleAchievement(i: number) {
-    setAchievements((arr) => arr.map((a, idx) => (idx === i ? { ...a, done: !a.done } : a)));
+  function addGoal(g: string) {
+    setGoals((x) => [g, ...x]);
   }
-  function updateCriteria(c: Criteria) { setCriteria(c); }
-  function setProfile(p: { name: string; role: string; org: string; avatarUri?: string }) { _setProfile(p); }
+  function toggleAchievement(i: number) {
+    setAchievements((arr) =>
+      arr.map((a, idx) => (idx === i ? { ...a, done: !a.done } : a))
+    );
+  }
+  function updateCriteria(c: Criteria) {
+    setCriteria(c);
+  }
+  function setProfile(p: {
+    name: string;
+    role: string;
+    org: string;
+    avatarUri?: string;
+  }) {
+    _setProfile(p);
+  }
 
   // ---- Grading + streak ----
   async function addRecording(r: RecordingInput): Promise<Grade> {
@@ -279,22 +346,42 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
     setHistory((h) => [{ ...g, audioUri: r.uri }, ...h]);
 
-    const newSessions = sessions + 1; setSessions(newSessions);
-    const newAvg = isFinite(avgScore) ? (avgScore * sessions + score) / newSessions : score; setAvgScore(newAvg);
+    const newSessions = sessions + 1;
+    setSessions(newSessions);
+    const newAvg = isFinite(avgScore)
+      ? (avgScore * sessions + score) / newSessions
+      : score;
+    setAvgScore(newAvg);
 
     // Streak (daily)
     const now = Date.now();
     const today = epochDay(now);
     const last = lastSubmitDate != null ? epochDay(lastSubmitDate) : null;
-    if (last === null) { setStreak(1); setLastSubmitDate(now); }
-    else if (last === today) { setLastSubmitDate(now); }
-    else if (last === today - 1) { setStreak((s) => s + 1); setLastSubmitDate(now); }
-    else { setStreak(1); setLastSubmitDate(now); }
+    if (last === null) {
+      setStreak(1);
+      setLastSubmitDate(now);
+    } else if (last === today) {
+      setLastSubmitDate(now);
+    } else if (last === today - 1) {
+      setStreak((s) => s + 1);
+      setLastSubmitDate(now);
+    } else {
+      setStreak(1);
+      setLastSubmitDate(now);
+    }
 
     // legacy achievements
-    setAchievements((arr) => arr.map((a) => (a.title === "First recording" ? { ...a, done: true } : a)));
-    if (score >= 80) setAchievements((arr) => arr.map((a) => (a.title === "Score 80+" ? { ...a, done: true } : a)));
-    if (newSessions >= 5) setAchievements((arr) => arr.map((a) => (a.title === "5 sessions" ? { ...a, done: true } : a)));
+    setAchievements((arr) =>
+      arr.map((a) => (a.title === "First recording" ? { ...a, done: true } : a))
+    );
+    if (score >= 80)
+      setAchievements((arr) =>
+        arr.map((a) => (a.title === "Score 80+" ? { ...a, done: true } : a))
+      );
+    if (newSessions >= 5)
+      setAchievements((arr) =>
+        arr.map((a) => (a.title === "5 sessions" ? { ...a, done: true } : a))
+      );
 
     return g;
   }
@@ -304,35 +391,63 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const value: AppState = useMemo(
     () => ({
       // auth
-      isAuthed, signIn, signOut,
+      isAuthed,
+      signIn,
+      signOut,
 
       // stats
-      sessions, avgScore, streak, lastSubmitDate,
+      sessions,
+      avgScore,
+      streak,
+      lastSubmitDate,
 
       // goals
-      goalsToday, prevGoals, managerNotes,
-      addTodayGoal, toggleTodayGoal, completeTodayGoal, removePrevGoal, setManagerNotes,
+      goalsToday,
+      prevGoals,
+      managerNotes,
+      addTodayGoal,
+      toggleTodayGoal,
+      completeTodayGoal,
+      removePrevGoal,
+      setManagerNotes,
 
       // legacy
-      goals, addGoal, achievements, toggleAchievement,
+      goals,
+      addGoal,
+      achievements,
+      toggleAchievement,
 
       // grading
-      criteria, updateCriteria, history, addRecording,
+      criteria,
+      updateCriteria,
+      history,
+      addRecording,
 
       // profile
-      profile, setProfile,
+      profile,
+      setProfile,
     }),
     [
       isAuthed,
-      sessions, avgScore, streak, lastSubmitDate,
-      goalsToday, prevGoals, managerNotes,
-      goals, achievements,
-      criteria, history, profile
+      sessions,
+      avgScore,
+      streak,
+      lastSubmitDate,
+      goalsToday,
+      prevGoals,
+      managerNotes,
+      goals,
+      achievements,
+      criteria,
+      history,
+      profile,
     ]
   );
 
   return (
-    <ThemeCtx.Provider value={{ colors, isDark: true as const, toggleTheme: () => {} }}>
+    <ThemeCtx.Provider
+      value={{ colors, isDark: true as const, toggleTheme: () => {} }}
+    >
       <AppCtx.Provider value={value}>{children}</AppCtx.Provider>
     </ThemeCtx.Provider>
   );
