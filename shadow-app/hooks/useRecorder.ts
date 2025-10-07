@@ -1,15 +1,14 @@
 // hooks/useRecorder.ts
-import { useEffect, useRef, useState } from "react";
-import { Alert, Animated } from "react-native";
 import {
-  useAudioRecorder,
+  AudioModule,
   RecordingPresets,
   setAudioModeAsync,
-  AudioModule,
+  useAudioRecorder,
 } from "expo-audio";
+import { useEffect, useRef, useState } from "react";
+import { Alert, Animated } from "react-native";
 
 export function useRecorder() {
-  // expo-audio recorder
   const recorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
 
   const [uri, setUri] = useState<string | null>(null);
@@ -18,18 +17,17 @@ export function useRecorder() {
 
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // pulse animation (mirrors your old behavior)
+  // pulse animation
   const pulse = useRef(new Animated.Value(1)).current;
   const loopRef = useRef<Animated.CompositeAnimation | null>(null);
 
-  // Permissions
+  // Permissions + audio mode once
   useEffect(() => {
     (async () => {
       const status = await AudioModule.requestRecordingPermissionsAsync();
       if (!status.granted) {
         Alert.alert("Microphone permission is required to record.");
       } else {
-        // sensible audio mode for recording
         await setAudioModeAsync({
           playsInSilentMode: true,
           allowsRecording: true,
@@ -43,16 +41,8 @@ export function useRecorder() {
     if (isRecording) {
       loopRef.current = Animated.loop(
         Animated.sequence([
-          Animated.timing(pulse, {
-            toValue: 1.4,
-            duration: 600,
-            useNativeDriver: true,
-          }),
-          Animated.timing(pulse, {
-            toValue: 1,
-            duration: 600,
-            useNativeDriver: true,
-          }),
+          Animated.timing(pulse, { toValue: 1.4, duration: 600, useNativeDriver: true }),
+          Animated.timing(pulse, { toValue: 1, duration: 600, useNativeDriver: true }),
         ])
       );
       loopRef.current.start();
@@ -80,13 +70,8 @@ export function useRecorder() {
 
   async function start() {
     try {
-      const status = await AudioModule.requestRecordingPermissionsAsync();
-      if (!status.granted) {
-        Alert.alert("Microphone permission is required to record.");
-        return;
-      }
       await recorder.prepareToRecordAsync();
-      recorder.record();
+      await recorder.record();
       setIsRecording(true);
       startTimer();
     } catch (e: any) {
