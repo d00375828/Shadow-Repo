@@ -1,7 +1,7 @@
 // components/AudioPlayer.tsx
+import { useAudioPlayer } from "expo-audio";
 import React, { useEffect, useState } from "react";
 import { Pressable, Text } from "react-native";
-import { useAudioPlayer } from "expo-audio";
 
 export default function AudioPlayer({
   uri,

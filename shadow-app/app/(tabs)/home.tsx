@@ -1,6 +1,7 @@
 // app/(tabs)/home.tsx
 import { Ionicons } from "@expo/vector-icons";
-import React, { useMemo, useState } from "react";
+import { router } from "expo-router";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   Alert,
   Animated,
@@ -14,7 +15,8 @@ import {
 } from "react-native";
 
 import AudioPlayer from "../../components/AudioPlayer";
-import SendToServer from "../../components/SendToServer"; // ← if not added yet, comment this line
+import Screen from "../../components/Screen";
+import SendToServer from "../../components/SendToServer";
 import { useApp, useTheme } from "../../context/AppContext";
 import { useRecorder } from "../../hooks/useRecorder";
 
@@ -22,15 +24,21 @@ export default function Home() {
   const { colors } = useTheme();
   const { addRecording } = useApp();
 
-  // useRecorder centralizes permission, audio-mode, record start/stop, uri, timer, and pulse animation
   const { isRecording, uri, seconds, pulse, start, stop, reset } =
     useRecorder();
+  const timerOpacity = useRef(new Animated.Value(isRecording ? 1 : 0)).current;
+  useEffect(() => {
+    Animated.timing(timerOpacity, {
+      toValue: isRecording ? 1 : 0,
+      duration: 150,
+      useNativeDriver: true,
+    }).start();
+  }, [isRecording, timerOpacity]);
 
-  // local UI state
   const [showReview, setShowReview] = useState(false);
   const [transcript, setTranscript] = useState("");
+  const [notes, setNotes] = useState("");
 
-  // format mm:ss
   const clock = useMemo(() => {
     const m = Math.floor(seconds / 60)
       .toString()
@@ -45,7 +53,6 @@ export default function Home() {
         await start();
       } else {
         await stop();
-        // When stop completes, hook sets uri
         setShowReview(true);
       }
     } catch (e: any) {
@@ -54,63 +61,47 @@ export default function Home() {
   }
 
   async function onSave() {
-    if (!uri) {
-      Alert.alert("No audio", "Record something first.");
-      return;
-    }
+    if (!uri) return Alert.alert("No audio", "Record something first.");
     try {
       await addRecording({
         transcript: transcript.trim(),
+        notes: notes.trim(),
         uri,
         createdAt: Date.now(),
       });
       setShowReview(false);
       setTranscript("");
-      reset(); // clears uri + timer + recording flag
-      Alert.alert("Saved", "Your recording was added to History.");
+      setNotes("");
+      reset();
+      Alert.alert("Saved", "You can view your grade in history");
     } catch (e: any) {
       Alert.alert("Save failed", e?.message ?? String(e));
     }
   }
 
-  function onDiscard() {
-    Alert.alert(
-      "Discard recording?",
-      "This will remove the current audio and text.",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Discard",
-          style: "destructive",
-          onPress: () => {
-            setShowReview(false);
-            setTranscript("");
-            reset();
-          },
+  function onDelete() {
+    Alert.alert("Delete recording?", "This will delete the recording forever", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: () => {
+          setShowReview(false);
+          setTranscript("");
+          setNotes("");
+          reset();
         },
-      ]
-    );
+      },
+    ]);
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.bg, padding: 16 }}>
-      {/* Header */}
-      <Text
-        style={{
-          color: colors.fg,
-          fontSize: 24,
-          fontWeight: "800",
-          marginBottom: 16,
-        }}
-      >
-        Shadow Sales — Practice
-      </Text>
-
-      {/* Big round record button with pulse */}
-      <View style={{ alignItems: "center", marginTop: 32 }}>
+    <Screen scroll={false} style={{ padding: 16, backgroundColor: colors.bg }}>
+      {/* Record Button */}
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
         <Animated.View
           style={{
-            transform: [{ scale: pulse }], // comes from the hook
+            transform: [{ scale: pulse }],
             borderRadius: 9999,
             padding: 6,
             backgroundColor: isRecording ? "#ff4d4d20" : "transparent",
@@ -119,8 +110,8 @@ export default function Home() {
           <Pressable
             onPress={onRecordPress}
             style={{
-              height: 96,
-              width: 96,
+              height: 140,
+              width: 140,
               borderRadius: 9999,
               backgroundColor: isRecording ? "#ff4d4d" : colors.accent,
               alignItems: "center",
@@ -139,113 +130,103 @@ export default function Home() {
         </Animated.View>
 
         {/* Timer */}
-        <Text style={{ color: colors.muted, marginTop: 12, fontSize: 16 }}>
-          {isRecording ? "Recording" : "Ready"} • {clock}
-        </Text>
-
-        {/* Show “Review” if a URI exists but modal is closed */}
-        {uri && !showReview ? (
-          <Pressable
-            onPress={() => setShowReview(true)}
+        <View style={{ alignItems: "center", marginTop: 12 }}>
+          <Text
+            style={{ color: colors.muted, fontSize: 16, fontWeight: "700" }}
+          >
+            {isRecording ? "Recording" : "Ready"}
+          </Text>
+          <Animated.Text
             style={{
-              marginTop: 12,
-              backgroundColor: colors.box,
-              borderColor: colors.border,
-              borderWidth: 1,
-              paddingHorizontal: 12,
-              paddingVertical: 8,
-              borderRadius: 8,
+              opacity: timerOpacity,
+              color: colors.muted,
+              fontSize: 16,
+              marginTop: 2,
             }}
           >
-            <Text style={{ color: colors.fg, fontWeight: "700" }}>
-              Open Review
-            </Text>
-          </Pressable>
-        ) : null}
+            {clock}
+          </Animated.Text>
+        </View>
+
+        {/* View Recordings Button */}
+        <Pressable
+          onPress={() => router.push("/recording")}
+          style={{
+            marginTop: 30,
+            alignSelf: "stretch",
+            backgroundColor: colors.box,
+            borderColor: colors.border,
+            borderWidth: 1,
+            paddingVertical: 14,
+            borderRadius: 12,
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Ionicons name={"videocam-outline"} size={20} color={colors.fg} />
+          <Text
+            style={{
+              color: colors.fg,
+              fontWeight: "800",
+              fontSize: 16,
+              marginLeft: 8,
+            }}
+          >
+            View Recordings
+          </Text>
+        </Pressable>
       </View>
 
-      {/* Review modal: playback, notes, send-to-server, save/discard */}
+      {/* Review modal */}
       <Modal
         visible={showReview}
         animationType="slide"
         onRequestClose={() => setShowReview(false)}
       >
-        <KeyboardAvoidingView
-          behavior={Platform.select({ ios: "padding", android: undefined })}
-          style={{ flex: 1, backgroundColor: colors.bg }}
-        >
-          <View style={{ padding: 16, gap: 16, flex: 1 }}>
-            {/* Top bar */}
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "space-between",
-              }}
-            >
-              <Text
-                style={{ color: colors.fg, fontSize: 20, fontWeight: "800" }}
-              >
-                Review
-              </Text>
-              <Pressable
-                onPress={() => setShowReview(false)}
+        <Screen style={{ backgroundColor: colors.bg }}>
+          <KeyboardAvoidingView
+            behavior={Platform.select({ ios: "padding", android: undefined })}
+            style={{ flex: 1 }}
+          >
+            <View style={{ padding: 16, gap: 16, flex: 1 }}>
+              {/* Top bar */}
+              <View
                 style={{
-                  paddingHorizontal: 12,
-                  paddingVertical: 6,
-                  borderRadius: 8,
-                  backgroundColor: colors.box,
-                  borderColor: colors.border,
-                  borderWidth: 1,
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "space-between",
                 }}
               >
-                <Text style={{ color: colors.fg, fontWeight: "700" }}>
-                  Close
+                <Text
+                  style={{
+                    color: colors.fg,
+                    fontSize: 25,
+                    fontWeight: "800",
+                    textAlign: "center",
+                    flex: 1,
+                    paddingBottom: 4,
+                  }}
+                >
+                  Recording Review
                 </Text>
-              </Pressable>
-            </View>
-
-            {/* Player */}
-            {uri ? (
-              <View style={{ alignItems: "center" }}>
-                <AudioPlayer
-                  uri={uri}
-                  bg={colors.accent}
-                  fg={colors.onAccent}
-                />
               </View>
-            ) : (
-              <Text style={{ color: colors.muted }}>No audio found.</Text>
-            )}
 
-            {/* Notes / transcript */}
-            <View style={{ flex: 1 }}>
-              <Text
-                style={{ color: colors.fg, fontWeight: "700", marginBottom: 8 }}
-              >
-                Notes / Transcript
-              </Text>
-              <TextInput
-                multiline
-                value={transcript}
-                onChangeText={setTranscript}
-                placeholder="What went well? What to improve?"
-                placeholderTextColor={colors.muted}
-                style={{
-                  color: colors.fg,
-                  borderColor: colors.border,
-                  borderWidth: 1,
-                  borderRadius: 10,
-                  padding: 12,
-                  minHeight: 120,
-                  textAlignVertical: "top",
-                }}
-              />
-            </View>
+              {/* Player */}
+              {uri ? (
+                <View style={{ alignItems: "center" }}>
+                  <AudioPlayer
+                    uri={uri}
+                    bg={colors.accent}
+                    fg={colors.onAccent}
+                  />
+                </View>
+              ) : (
+                <Text style={{ color: colors.muted }}>No audio found.</Text>
+              )}
 
-            {/* Send to server (optional, comment out if component not present) */}
-            {uri ? (
-              <View>
+              {/* Notes / transcript */}
+              <View style={{ flex: 1 }}>
                 <Text
                   style={{
                     color: colors.fg,
@@ -253,40 +234,99 @@ export default function Home() {
                     marginBottom: 8,
                   }}
                 >
-                  Server Feedback
+                  Transcript
                 </Text>
-                <SendToServer
-                  uri={uri}
-                  onResponseText={(t) => setTranscript(t)} // ← add this
+                <TextInput
+                  multiline
+                  value={transcript}
+                  onChangeText={setTranscript}
+                  placeholder="This is where your transcript will appear."
+                  placeholderTextColor={colors.muted}
+                  style={{
+                    color: colors.fg,
+                    borderColor: colors.border,
+                    borderWidth: 1,
+                    borderRadius: 10,
+                    padding: 12,
+                    minHeight: 120,
+                    textAlignVertical: "top",
+                  }}
                 />
               </View>
-            ) : null}
 
-            {/* Action bar */}
-            <View
-              style={{
-                flexDirection: "row",
-                gap: 12,
-                justifyContent: "space-between",
-              }}
-            >
-              <ActionButton
-                title="Discard"
-                onPress={onDiscard}
-                color="#111"
-                fg="#fff"
-              />
-              <ActionButton
-                title="Save"
-                onPress={onSave}
-                color={colors.accent}
-                fg={colors.onAccent}
-              />
+              <View style={{ flex: 1 }}>
+                <Text
+                  style={{
+                    color: colors.fg,
+                    fontWeight: "700",
+                    marginBottom: 8,
+                  }}
+                >
+                  Notes
+                </Text>
+                <TextInput
+                  multiline
+                  value={notes}
+                  onChangeText={setNotes}
+                  placeholder="What went well? What to improve?"
+                  placeholderTextColor={colors.muted}
+                  style={{
+                    color: colors.fg,
+                    borderColor: colors.border,
+                    borderWidth: 1,
+                    borderRadius: 10,
+                    padding: 12,
+                    minHeight: 100,
+                    textAlignVertical: "top",
+                  }}
+                />
+              </View>
+
+              {/* Server Feedback */}
+              {uri ? (
+                <View>
+                  <Text
+                    style={{
+                      color: colors.fg,
+                      fontWeight: "700",
+                      marginBottom: 8,
+                    }}
+                  >
+                    Server Feedback
+                  </Text>
+                  <SendToServer
+                    uri={uri}
+                    onResponseText={(t) => setTranscript(t)}
+                  />
+                </View>
+              ) : null}
+
+              {/* Action bar */}
+              <View
+                style={{
+                  flexDirection: "row",
+                  gap: 12,
+                  justifyContent: "space-between",
+                }}
+              >
+                <ActionButton
+                  title="Delete"
+                  onPress={onDelete}
+                  color="#111"
+                  fg="#fff"
+                />
+                <ActionButton
+                  title="Save"
+                  onPress={onSave}
+                  color={colors.accent}
+                  fg={colors.onAccent}
+                />
+              </View>
             </View>
-          </View>
-        </KeyboardAvoidingView>
+          </KeyboardAvoidingView>
+        </Screen>
       </Modal>
-    </View>
+    </Screen>
   );
 }
 

@@ -1,4 +1,6 @@
+// context/AppContext.tsx
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as FileSystem from "expo-file-system";
 import React, {
   createContext,
   useContext,
@@ -29,6 +31,7 @@ export type Criteria = {
 
 export type RecordingInput = {
   transcript: string;
+  notes: string;
   uri: string | null;
   createdAt: number;
 };
@@ -82,11 +85,16 @@ interface AppState {
   achievements: { title: string; done: boolean }[];
   toggleAchievement: (i: number) => void;
 
-  // Grading
+  // Grading / Recordings
   criteria: Criteria;
   updateCriteria: (c: Criteria) => void;
-  history: (Grade & { audioUri?: string | null })[];
+  history: (Grade & {
+    audioUri?: string | null;
+    transcript?: string;
+    notes?: string;
+  })[];
   addRecording: (r: RecordingInput) => Promise<Grade>;
+  deleteRecording: (idOrCreatedAt: string | number) => void; // ⬅️ exposed
 
   // Profile
   profile: { name: string; role: string; org: string; avatarUri?: string };
@@ -146,10 +154,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     { title: "5 sessions", done: false },
   ]);
 
-  // Grading
+  // Grading / Recordings
   const [criteria, setCriteria] = useState<Criteria>(defaultCriteria);
   const [history, setHistory] = useState<
-    (Grade & { audioUri?: string | null })[]
+    (Grade & {
+      audioUri?: string | null;
+      transcript?: string;
+      notes?: string;
+    })[]
   >([]);
 
   // Profile
@@ -164,6 +176,24 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     org: "",
     avatarUri: undefined,
   });
+
+  // ---- Delete Recording ----
+  const deleteRecording = (idOrCreatedAt: string | number) => {
+    setHistory((prev: any[]) => {
+      const key = String(idOrCreatedAt);
+      const rec = prev.find((r) => String(r.id ?? r.createdAt) === key);
+
+      // Try to remove the local audio file (if any)
+      if (rec?.audioUri) {
+        FileSystem.deleteAsync(rec.audioUri, { idempotent: true }).catch(() => {
+          /* ignore */
+        });
+      }
+
+      const next = prev.filter((r) => String(r.id ?? r.createdAt) !== key);
+      return next;
+    });
+  };
 
   // ---- Hydrate from storage ----
   useEffect(() => {
@@ -222,15 +252,19 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     AsyncStorage.setItem("sessions", String(sessions));
   }, [sessions]);
+
   useEffect(() => {
     AsyncStorage.setItem("avgScore", String(avgScore));
   }, [avgScore]);
+
   useEffect(() => {
     AsyncStorage.setItem("history", JSON.stringify(history));
   }, [history]);
+
   useEffect(() => {
     AsyncStorage.setItem("criteria", JSON.stringify(criteria));
   }, [criteria]);
+
   useEffect(() => {
     AsyncStorage.setItem("profile", JSON.stringify(profile));
   }, [profile]);
@@ -238,6 +272,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     AsyncStorage.setItem("streak", String(streak));
   }, [streak]);
+
   useEffect(() => {
     AsyncStorage.setItem(
       "lastSubmitDate",
@@ -248,9 +283,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     AsyncStorage.setItem("goalsToday", JSON.stringify(goalsToday));
   }, [goalsToday]);
+
   useEffect(() => {
     AsyncStorage.setItem("prevGoals", JSON.stringify(prevGoals));
   }, [prevGoals]);
+
   useEffect(() => {
     AsyncStorage.setItem("managerNotes", JSON.stringify(managerNotes));
   }, [managerNotes]);
@@ -258,6 +295,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     AsyncStorage.setItem("goals", JSON.stringify(goals));
   }, [goals]);
+
   useEffect(() => {
     AsyncStorage.setItem("achievements", JSON.stringify(achievements));
   }, [achievements]);
@@ -271,7 +309,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   async function signOut() {
     setIsAuthed(false);
-    // (Optional) also clear runtime state if you want a “fresh” app after logout
+    // Optional: also clear runtime state if you want a “fresh” app after logout
     // setHistory([]); setGoalsToday([]); setPrevGoals([]); etc.
   }
 
@@ -344,7 +382,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       suggestions: pickSuggestions(criteria),
     };
 
-    setHistory((h) => [{ ...g, audioUri: r.uri }, ...h]);
+    setHistory((h) => [
+      {
+        ...g,
+        audioUri: r.uri,
+        transcript: r.transcript?.trim() ?? "",
+        notes: r.notes?.trim() ?? "",
+      },
+      ...h,
+    ]);
 
     const newSessions = sessions + 1;
     setSessions(newSessions);
@@ -417,11 +463,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       achievements,
       toggleAchievement,
 
-      // grading
+      // grading / recordings
       criteria,
       updateCriteria,
       history,
       addRecording,
+      deleteRecording, // ⬅️ now exported
 
       // profile
       profile,
