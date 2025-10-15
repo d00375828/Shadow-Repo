@@ -1,4 +1,4 @@
-// Recording details page
+// app/recording/[id].tsx
 import { Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useMemo, useState } from "react";
@@ -14,6 +14,7 @@ import {
 
 import AudioPlayer from "../../components/AudioPlayer";
 import Card from "../../components/Card";
+import PageHeader from "../../components/PageHeader";
 import Screen from "../../components/Screen";
 import SectionTitle from "../../components/SectionTitle";
 import { useApp, useTheme } from "../../context/AppContext";
@@ -40,6 +41,24 @@ export default function RecordingDetail() {
         backgroundColor={colors.bg}
         style={{ padding: 16 }}
       >
+        <PageHeader
+          title="Recording Details"
+          left={
+            <Pressable
+              onPress={() => router.back()}
+              hitSlop={12}
+              style={{
+                padding: 6,
+                borderRadius: 9999,
+                backgroundColor: colors.box,
+                borderColor: colors.border,
+                borderWidth: 1,
+              }}
+            >
+              <Ionicons name="chevron-back" size={20} color={colors.fg} />
+            </Pressable>
+          }
+        />
         <Card bg={colors.box} style={{ gap: 12 }}>
           <Text style={{ color: colors.fg, fontSize: 18, fontWeight: "800" }}>
             Recording not found
@@ -116,9 +135,9 @@ ${(r.notes || "").trim() || "(none)"}
 
   return (
     <Screen scroll={false} backgroundColor={colors.bg} style={{ padding: 16 }}>
-      <ScrollView contentContainerStyle={{ gap: 12, paddingBottom: 24 }}>
-        {/* Top bar */}
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+      <PageHeader
+        title="Recording Details"
+        left={
           <Pressable
             onPress={() => router.back()}
             hitSlop={12}
@@ -132,11 +151,10 @@ ${(r.notes || "").trim() || "(none)"}
           >
             <Ionicons name="chevron-back" size={20} color={colors.fg} />
           </Pressable>
-          <Text style={{ color: colors.fg, fontSize: 20, fontWeight: "800" }}>
-            Recording Details
-          </Text>
-        </View>
+        }
+      />
 
+      <ScrollView contentContainerStyle={{ gap: 12, paddingBottom: 24 }}>
         {/* Meta + Player */}
         <Card bg={colors.box} style={{ gap: 10 }}>
           <Text style={{ color: colors.muted }}>
@@ -228,7 +246,6 @@ ${(r.notes || "").trim() || "(none)"}
             )}
           </View>
 
-          {/* Body: either text or editable field */}
           {!isEditingNotes ? (
             <Text style={{ color: colors.muted, lineHeight: 20 }}>
               {r.notes?.trim() || "(No notes saved)"}

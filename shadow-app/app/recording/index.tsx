@@ -1,9 +1,11 @@
+// app/recording/index.tsx
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React, { useMemo } from "react";
 import { Pressable, SectionList, Text, View } from "react-native";
 
 import Card from "../../components/Card";
+import PageHeader from "../../components/PageHeader";
 import Screen from "../../components/Screen";
 import { useApp, useTheme } from "../../context/AppContext";
 
@@ -61,14 +63,12 @@ export default function RecordingsList() {
       });
     };
 
-    // populate groups
     (history as HistoryItem[]).forEach((item) => {
       const k = keyFromTs(item.createdAt ?? Date.now());
       if (!byDay.has(k)) byDay.set(k, []);
       byDay.get(k)!.push(item);
     });
 
-    // to sections (sort days desc, and items desc within day)
     const result: Section[] = Array.from(byDay.entries())
       .map(([key, items]) => ({
         key,
@@ -94,40 +94,24 @@ export default function RecordingsList() {
 
   return (
     <Screen scroll={false} style={{ padding: 16, backgroundColor: colors.bg }}>
-      {/* Top bar with back arrow */}
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          marginBottom: 8,
-          gap: 8,
-        }}
-      >
-        <Pressable
-          onPress={() => router.replace("/(tabs)/home")}
-          hitSlop={12}
-          style={{
-            padding: 6,
-            borderRadius: 9999,
-            backgroundColor: colors.box,
-            borderColor: colors.border,
-            borderWidth: 1,
-          }}
-        >
-          <Ionicons name="chevron-back" size={20} color={colors.fg} />
-        </Pressable>
-        <Text
-          style={{
-            color: colors.fg,
-            fontSize: 25,
-            fontWeight: "800",
-            textAlign: "center",
-            flex: 1,
-          }}
-        >
-          Past Recordings
-        </Text>
-      </View>
+      <PageHeader
+        title="Past Recordings"
+        left={
+          <Pressable
+            onPress={() => router.replace("/(tabs)/home")}
+            hitSlop={12}
+            style={{
+              padding: 6,
+              borderRadius: 9999,
+              backgroundColor: colors.box,
+              borderColor: colors.border,
+              borderWidth: 1,
+            }}
+          >
+            <Ionicons name="chevron-back" size={20} color={colors.fg} />
+          </Pressable>
+        }
+      />
 
       <SectionList
         sections={sections}

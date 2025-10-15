@@ -18,7 +18,7 @@ const DARK_COLORS = {
   peach: "#ffddba",
   onAccent: "#000",
   box: "#111",
-  border: "#1b1b1b",
+  border: "#615f5f",
 };
 
 export type Criteria = {
