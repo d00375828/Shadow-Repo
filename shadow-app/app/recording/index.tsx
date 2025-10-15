@@ -184,7 +184,7 @@ export default function RecordingsList() {
         )}
         ListEmptyComponent={
           <Text style={{ color: colors.muted, marginTop: 8 }}>
-            No recordings yet. Make your first one on the Home tab.
+            No recordings yet. Make your first one on the Recording page.
           </Text>
         }
       />

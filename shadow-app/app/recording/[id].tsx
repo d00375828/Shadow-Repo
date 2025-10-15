@@ -1,8 +1,16 @@
-// Recording Details Screen
+// Recording details page
 import { Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
-import React, { useMemo } from "react";
-import { Alert, Pressable, ScrollView, Share, Text, View } from "react-native";
+import React, { useMemo, useState } from "react";
+import {
+  Alert,
+  Pressable,
+  ScrollView,
+  Share,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 
 import AudioPlayer from "../../components/AudioPlayer";
 import Card from "../../components/Card";
@@ -13,7 +21,7 @@ import { useApp, useTheme } from "../../context/AppContext";
 export default function RecordingDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { colors } = useTheme();
-  const { history, deleteRecording } = useApp();
+  const { history, deleteRecording, updateRecordingNotes } = useApp();
 
   const rec = useMemo(() => {
     const key = String(id);
@@ -21,6 +29,9 @@ export default function RecordingDetail() {
       (h: any) => String(h.id) === key || String(h.createdAt) === key
     );
   }, [id, history]);
+
+  const [isEditingNotes, setIsEditingNotes] = useState(false);
+  const [notesDraft, setNotesDraft] = useState(rec?.notes ?? "");
 
   if (!rec) {
     return (
@@ -87,6 +98,22 @@ ${(r.notes || "").trim() || "(none)"}
     );
   }
 
+  function startEditingNotes() {
+    setNotesDraft(r.notes ?? "");
+    setIsEditingNotes(true);
+  }
+
+  function cancelEditingNotes() {
+    setNotesDraft(r.notes ?? "");
+    setIsEditingNotes(false);
+  }
+
+  function saveNotes() {
+    const key = String(id);
+    updateRecordingNotes(key, notesDraft);
+    setIsEditingNotes(false);
+  }
+
   return (
     <Screen scroll={false} backgroundColor={colors.bg} style={{ padding: 16 }}>
       <ScrollView contentContainerStyle={{ gap: 12, paddingBottom: 24 }}>
@@ -146,10 +173,85 @@ ${(r.notes || "").trim() || "(none)"}
 
         {/* Notes */}
         <Card bg={colors.box} style={{ gap: 8 }}>
-          <SectionTitle color={colors.fg}>Notes</SectionTitle>
-          <Text style={{ color: colors.muted, lineHeight: 20 }}>
-            {r.notes?.trim() || "(No notes saved)"}
-          </Text>
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}
+          >
+            <SectionTitle color={colors.fg}>Notes</SectionTitle>
+
+            {!isEditingNotes ? (
+              <Pressable
+                onPress={startEditingNotes}
+                hitSlop={8}
+                style={{
+                  padding: 6,
+                  borderRadius: 9999,
+                  backgroundColor: colors.box,
+                  borderColor: colors.border,
+                  borderWidth: 1,
+                }}
+              >
+                <Ionicons name="create-outline" size={18} color={colors.fg} />
+              </Pressable>
+            ) : (
+              <View style={{ flexDirection: "row", gap: 8 }}>
+                <Pressable
+                  onPress={saveNotes}
+                  hitSlop={8}
+                  style={{
+                    padding: 6,
+                    borderRadius: 9999,
+                    backgroundColor: colors.accent,
+                  }}
+                >
+                  <Ionicons
+                    name="checkmark"
+                    size={18}
+                    color={colors.onAccent}
+                  />
+                </Pressable>
+                <Pressable
+                  onPress={cancelEditingNotes}
+                  hitSlop={8}
+                  style={{
+                    padding: 6,
+                    borderRadius: 9999,
+                    backgroundColor: "#333",
+                  }}
+                >
+                  <Ionicons name="close" size={18} color={colors.fg} />
+                </Pressable>
+              </View>
+            )}
+          </View>
+
+          {/* Body: either text or editable field */}
+          {!isEditingNotes ? (
+            <Text style={{ color: colors.muted, lineHeight: 20 }}>
+              {r.notes?.trim() || "(No notes saved)"}
+            </Text>
+          ) : (
+            <TextInput
+              multiline
+              autoFocus
+              value={notesDraft}
+              onChangeText={setNotesDraft}
+              placeholder="Add or update your notes…"
+              placeholderTextColor={colors.muted}
+              style={{
+                color: colors.fg,
+                borderColor: colors.border,
+                borderWidth: 1,
+                borderRadius: 10,
+                padding: 12,
+                minHeight: 120,
+                textAlignVertical: "top",
+              }}
+            />
+          )}
         </Card>
 
         {/* Actions */}

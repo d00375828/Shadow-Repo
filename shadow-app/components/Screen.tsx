@@ -1,4 +1,4 @@
-// components/Screen.tsx
+// Screen component that handles safe area, keyboard avoiding, and optional scrolling.
 import React from "react";
 import {
   KeyboardAvoidingView,

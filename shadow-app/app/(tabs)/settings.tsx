@@ -1,214 +1,165 @@
-// Settings Page
-
-import React, { useState } from "react";
-import {
-  Modal,
-  Pressable,
-  Text,
-  TextInput,
-  View,
-  useWindowDimensions,
-} from "react-native";
+// app/(tabs)/settings.tsx
 import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
+import React, { useState } from "react";
+import { Alert, Pressable, Text, View } from "react-native";
+
+import PageHeader from "@/components/PageHeader";
 import Card from "../../components/Card";
+import SafeModal from "../../components/SafeModal";
 import Screen from "../../components/Screen";
 import SectionTitle from "../../components/SectionTitle";
 import { useApp, useTheme } from "../../context/AppContext";
-import { router } from "expo-router";
-import useIsLandscape from "../../hooks/useIsLandscape";
 
-const ROLES = [
-  "Sales Rep",
-  "Account Executive",
-  "SDR",
-  "Manager",
-  "Custom",
-] as const;
+const LEADING_ICON_SIZE = 26;
+const CHEVRON_ICON_SIZE = 22;
 
-export default function Settings() {
+function NavCard({
+  title,
+  subtitle,
+  icon,
+  onPress,
+}: {
+  title: string;
+  subtitle?: string;
+  icon: keyof typeof Ionicons.glyphMap;
+  onPress: () => void;
+}) {
   const { colors } = useTheme();
-  const { profile, setProfile, signOut } = useApp();
-  const isLandscape = useIsLandscape();
-  const { width } = useWindowDimensions();
-  const cardWidth = isLandscape
-    ? Math.min(560, Math.max(380, width * 0.5))
-    : undefined;
+  return (
+    <Pressable onPress={onPress} style={{ marginBottom: 12 }}>
+      <Card
+        bg={colors.box}
+        style={{
+          borderColor: colors.border,
+          borderWidth: 1,
+          paddingVertical: 14,
+          paddingHorizontal: 12,
+        }}
+      >
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+          <Ionicons
+            name={icon}
+            size={LEADING_ICON_SIZE}
+            color={colors.accent}
+          />
+          <View style={{ flex: 1 }}>
+            <Text style={{ color: colors.fg, fontWeight: "800", fontSize: 16 }}>
+              {title}
+            </Text>
+            {subtitle ? (
+              <Text style={{ color: colors.muted, marginTop: 2 }}>
+                {subtitle}
+              </Text>
+            ) : null}
+          </View>
+          <Ionicons
+            name="chevron-forward"
+            size={CHEVRON_ICON_SIZE}
+            color={colors.accent}
+          />
+        </View>
+      </Card>
+    </Pressable>
+  );
+}
 
-  const [roleOpen, setRoleOpen] = useState(false);
+export default function SettingsHub() {
+  const { colors } = useTheme();
+  const { signOut } = useApp();
+  const [showHelp, setShowHelp] = useState(false);
 
-  function update<K extends keyof typeof profile>(
-    key: K,
-    value: (typeof profile)[K]
-  ) {
-    setProfile({ ...profile, [key]: value });
-  }
-
-  async function onLogout() {
-    await signOut();
-    router.replace("/");
+  function doSignOut() {
+    Alert.alert("Sign out?", "You’ll need to sign in again to continue.", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Sign Out",
+        style: "destructive",
+        onPress: () => {
+          signOut();
+        },
+      },
+    ]);
   }
 
   return (
-    <Screen
-      backgroundColor={colors.bg}
-      style={{ padding: 16, alignItems: "center" }}
-    >
-      <Card bg={colors.box} style={{ gap: 12, width: cardWidth ?? "100%" }}>
-        <SectionTitle color={colors.fg}>Profile</SectionTitle>
+    // NOTE: flexGrow: 1 lets the content fill the height so the footer can sit at the bottom
+    <Screen style={{ padding: 16, backgroundColor: colors.bg, flexGrow: 1 }}>
+      <PageHeader title="Settings" />
 
-        {/* Name */}
-        <View style={{ gap: 6 }}>
-          <Text style={{ color: colors.muted, fontSize: 12 }}>Name</Text>
-          <TextInput
-            value={profile.name}
-            onChangeText={(t) => update("name", t)}
-            placeholder="Your name"
-            placeholderTextColor={colors.muted}
-            style={{
-              backgroundColor: "#0e0e0e",
-              color: colors.fg,
-              paddingHorizontal: 12,
-              paddingVertical: 10,
-              borderRadius: 10,
-              borderWidth: 1,
-              borderColor: colors.border,
-            }}
-          />
-        </View>
+      <NavCard
+        title="Profile"
+        subtitle="Manage your account info"
+        icon="person-circle-outline"
+        onPress={() => router.push("/settings/profile")}
+      />
 
-        {/* Organization */}
-        <View style={{ gap: 6 }}>
-          <Text style={{ color: colors.muted, fontSize: 12 }}>
-            Organization
-          </Text>
-          <TextInput
-            value={profile.org}
-            onChangeText={(t) => update("org", t)}
-            placeholder="Company / Team"
-            placeholderTextColor={colors.muted}
-            style={{
-              backgroundColor: "#0e0e0e",
-              color: colors.fg,
-              paddingHorizontal: 12,
-              paddingVertical: 10,
-              borderRadius: 10,
-              borderWidth: 1,
-              borderColor: colors.border,
-            }}
-          />
-        </View>
+      <NavCard
+        title="Notifications"
+        subtitle="Manage your alerts"
+        icon="notifications-outline"
+        onPress={() => router.push("/settings/notifications")}
+      />
 
-        {/* Role (modal selector, high-contrast) */}
-        <View style={{ gap: 6 }}>
-          <Text style={{ color: colors.muted, fontSize: 12 }}>Role</Text>
-          <Pressable
-            onPress={() => setRoleOpen(true)}
-            style={{
-              backgroundColor: "#0e0e0e",
-              borderColor: colors.border,
-              borderWidth: 1,
-              paddingHorizontal: 12,
-              paddingVertical: 12,
-              borderRadius: 10,
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "space-between",
-            }}
-          >
-            <Text style={{ color: colors.fg, fontWeight: "600" }}>
-              {profile.role || "Select role"}
-            </Text>
-            <Ionicons name="chevron-down" size={18} color={colors.muted} />
-          </Pressable>
-        </View>
+      <NavCard
+        title="Privacy & Security"
+        subtitle="Permissions and access"
+        icon="shield-checkmark-outline"
+        onPress={() => router.push("/settings/privacy")}
+      />
 
-        {/* Logout */}
-        <Pressable
-          onPress={onLogout}
-          style={{
-            backgroundColor: "#300",
-            borderWidth: 1,
-            borderColor: "#500",
-            paddingVertical: 12,
-            borderRadius: 10,
-            alignItems: "center",
-            marginTop: 8,
-          }}
-        >
-          <Text style={{ color: "#fff", fontWeight: "800" }}>Log Out</Text>
-        </Pressable>
-      </Card>
+      <NavCard
+        title="Help & Support"
+        subtitle="Contact info and FAQs"
+        icon="help-circle-outline"
+        onPress={() => setShowHelp(true)}
+      />
 
-      {/* Role modal */}
-      <Modal
-        visible={roleOpen}
-        animationType="fade"
-        transparent
-        onRequestClose={() => setRoleOpen(false)}
+      {/* Spacer pushes the footer button to the bottom */}
+      <View style={{ flexGrow: 1 }} />
+
+      {/* Footer: Sign Out at bottom */}
+      <Pressable
+        onPress={doSignOut}
+        style={{
+          backgroundColor: "#B00020",
+          paddingVertical: 12,
+          borderRadius: 10,
+          alignItems: "center",
+        }}
       >
-        <Pressable
-          onPress={() => setRoleOpen(false)}
-          style={{
-            flex: 1,
-            backgroundColor: "#000a",
-            justifyContent: "center",
-            padding: 20,
-          }}
-        >
-          <Pressable
-            onPress={() => {}}
-            style={{
-              backgroundColor: colors.box,
-              borderRadius: 14,
-              padding: 12,
-              borderWidth: 1,
-              borderColor: colors.border,
-            }}
-          >
-            <Text
-              style={{
-                color: colors.fg,
-                fontSize: 16,
-                fontWeight: "800",
-                textAlign: "center",
-                marginVertical: 8,
-              }}
-            >
-              Select Role
-            </Text>
-            {ROLES.map((r) => {
-              const selected = r === profile.role;
-              return (
-                <Pressable
-                  key={r}
-                  onPress={() => {
-                    update("role", r);
-                    setRoleOpen(false);
-                  }}
-                  style={{
-                    paddingVertical: 12,
-                    paddingHorizontal: 10,
-                    borderTopWidth: 1,
-                    borderTopColor: colors.border,
-                    flexDirection: "row",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                  }}
-                >
-                  <Text style={{ color: colors.fg, fontSize: 15 }}>{r}</Text>
-                  {selected ? (
-                    <Ionicons
-                      name="checkmark"
-                      size={18}
-                      color={colors.accent}
-                    />
-                  ) : null}
-                </Pressable>
-              );
-            })}
-          </Pressable>
-        </Pressable>
-      </Modal>
+        <Text style={{ color: "#fff", fontWeight: "800" }}>Sign Out</Text>
+      </Pressable>
+
+      {/* Help Modal */}
+      <SafeModal
+        visible={showHelp}
+        onClose={() => setShowHelp(false)}
+        title="Help & Support"
+      >
+        <View style={{ gap: 12 }}>
+          <SectionTitle color={colors.fg}>Contact Information</SectionTitle>
+          <Text style={{ color: colors.muted }}>Email: support@shadow.com</Text>
+          <Text style={{ color: colors.muted }}>Phone: 1-800-SHADOW1</Text>
+          <Text style={{ color: colors.muted }}>Hours: 24/7 Support</Text>
+
+          <SectionTitle color={colors.fg} style={{ marginTop: 8 }}>
+            Frequently Asked Questions
+          </SectionTitle>
+          <Text style={{ color: colors.fg, fontWeight: "700" }}>
+            How do I reset my password?
+          </Text>
+          <Text style={{ color: colors.muted, marginBottom: 8 }}>
+            Contact your organization administrator.
+          </Text>
+          <Text style={{ color: colors.fg, fontWeight: "700" }}>
+            What if I forgot my organization code?
+          </Text>
+          <Text style={{ color: colors.muted }}>
+            Check with your manager or HR department.
+          </Text>
+        </View>
+      </SafeModal>
     </Screen>
   );
 }

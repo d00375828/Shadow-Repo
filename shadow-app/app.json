@@ -14,7 +14,11 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSPhotoLibraryUsageDescription": "We need access to your photo library to select a profile picture.",
+        "NSMicrophoneUsageDescription": "We need access to your microphone to record your sales pitches."
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -33,7 +37,9 @@
       "expo-router",
       "expo-audio",
       "expo-audio",
-      "expo-video"
+      "expo-video",
+      "expo-font",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true

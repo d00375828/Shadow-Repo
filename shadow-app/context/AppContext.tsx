@@ -57,6 +57,25 @@ export type PrevGoal = {
   completedAt: number;
 };
 
+// New settings types
+export type NotifPrefs = {
+  push: boolean;
+  email: boolean;
+  sms: boolean;
+};
+export type AccessEntry = {
+  name: string;
+  role: string;
+  relation: "manager" | "friend" | "owner";
+};
+export type PrivacyPrefs = {
+  activeListening: boolean;
+  analytics: boolean;
+  location: boolean;
+  microphone: boolean;
+  access: AccessEntry[];
+};
+
 interface AppState {
   // Auth
   isAuthed: boolean;
@@ -74,8 +93,8 @@ interface AppState {
   prevGoals: PrevGoal[];
   managerNotes: string;
   addTodayGoal: (text: string) => void;
-  toggleTodayGoal: (id: number) => void; // visual toggle only
-  completeTodayGoal: (id: number) => void; // move to accomplished
+  toggleTodayGoal: (id: number) => void;
+  completeTodayGoal: (id: number) => void;
   removePrevGoal: (id: number) => void;
   setManagerNotes: (text: string) => void;
 
@@ -94,16 +113,32 @@ interface AppState {
     notes?: string;
   })[];
   addRecording: (r: RecordingInput) => Promise<Grade>;
-  deleteRecording: (idOrCreatedAt: string | number) => void; // ⬅️ exposed
+  deleteRecording: (idOrCreatedAt: string | number) => void;
+  updateRecordingNotes: (idOrCreatedAt: string | number, notes: string) => void;
 
   // Profile
-  profile: { name: string; role: string; org: string; avatarUri?: string };
+  profile: {
+    name: string;
+    role: string;
+    org: string;
+    avatarUri?: string;
+    email?: string;
+    phone?: string;
+  };
   setProfile: (p: {
     name: string;
     role: string;
     org: string;
     avatarUri?: string;
+    email?: string;
+    phone?: string;
   }) => void;
+
+  // Settings
+  notifPrefs: NotifPrefs;
+  setNotifPrefs: (n: NotifPrefs) => void;
+  privacyPrefs: PrivacyPrefs;
+  setPrivacyPrefs: (p: PrivacyPrefs) => void;
 }
 
 const defaultCriteria: Criteria = {
@@ -126,7 +161,6 @@ const AppCtx = createContext<AppState | null>(null);
 // ---- Helpers ----
 const DAY_MS = 24 * 60 * 60 * 1000;
 function epochDay(ts: number) {
-  // Midnight UTC buckets (switch to local math if you prefer local-day streaks)
   return Math.floor(ts / DAY_MS);
 }
 
@@ -170,36 +204,66 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     role: string;
     org: string;
     avatarUri?: string;
+    email?: string;
+    phone?: string;
   }>({
     name: "",
     role: "",
     org: "",
     avatarUri: undefined,
+    email: "",
+    phone: "",
   });
 
-  // ---- Delete Recording ----
+  // Settings
+  const [notifPrefs, setNotifPrefs] = useState<NotifPrefs>({
+    push: false,
+    email: false,
+    sms: false,
+  });
+
+  const [privacyPrefs, setPrivacyPrefs] = useState<PrivacyPrefs>({
+    activeListening: false,
+    analytics: false,
+    location: false,
+    microphone: false,
+    access: [
+      { name: "Avery Morgan", role: "Manager", relation: "manager" },
+      { name: "Jordan Lee", role: "Owner", relation: "owner" },
+    ],
+  });
+
+  // ---- Delete / Update Recording ----
   const deleteRecording = (idOrCreatedAt: string | number) => {
     setHistory((prev: any[]) => {
       const key = String(idOrCreatedAt);
       const rec = prev.find((r) => String(r.id ?? r.createdAt) === key);
-
-      // Try to remove the local audio file (if any)
       if (rec?.audioUri) {
-        FileSystem.deleteAsync(rec.audioUri, { idempotent: true }).catch(() => {
-          /* ignore */
-        });
+        FileSystem.deleteAsync(rec.audioUri, { idempotent: true }).catch(
+          () => {}
+        );
       }
-
-      const next = prev.filter((r) => String(r.id ?? r.createdAt) !== key);
-      return next;
+      return prev.filter((r) => String(r.id ?? r.createdAt) !== key);
     });
+  };
+
+  const updateRecordingNotes = (
+    idOrCreatedAt: string | number,
+    notes: string
+  ) => {
+    const key = String(idOrCreatedAt);
+    setHistory((prev) =>
+      prev.map((r) =>
+        String(r.id ?? r.createdAt) === key ? { ...r, notes: notes.trim() } : r
+      )
+    );
   };
 
   // ---- Hydrate from storage ----
   useEffect(() => {
     (async () => {
       try {
-        const [IA, S, A, H, C, P, STR, LSD, GT, PG, MN, GLEG, ACH] =
+        const [IA, S, A, H, C, P, STR, LSD, GT, PG, MN, GLEG, ACH, NP, PRV] =
           await Promise.all([
             AsyncStorage.getItem("isAuthed"),
             AsyncStorage.getItem("sessions"),
@@ -217,6 +281,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
             AsyncStorage.getItem("goals"),
             AsyncStorage.getItem("achievements"),
+
+            AsyncStorage.getItem("notifPrefs"),
+            AsyncStorage.getItem("privacyPrefs"),
           ]);
 
         if (IA) setIsAuthed(IA === "1");
@@ -238,6 +305,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
         if (GLEG) setGoals(JSON.parse(GLEG));
         if (ACH) setAchievements(JSON.parse(ACH));
+
+        if (NP) setNotifPrefs(JSON.parse(NP));
+        if (PRV) setPrivacyPrefs(JSON.parse(PRV));
       } catch {
         // ignore
       }
@@ -252,19 +322,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     AsyncStorage.setItem("sessions", String(sessions));
   }, [sessions]);
-
   useEffect(() => {
     AsyncStorage.setItem("avgScore", String(avgScore));
   }, [avgScore]);
-
   useEffect(() => {
     AsyncStorage.setItem("history", JSON.stringify(history));
   }, [history]);
-
   useEffect(() => {
     AsyncStorage.setItem("criteria", JSON.stringify(criteria));
   }, [criteria]);
-
   useEffect(() => {
     AsyncStorage.setItem("profile", JSON.stringify(profile));
   }, [profile]);
@@ -272,7 +338,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     AsyncStorage.setItem("streak", String(streak));
   }, [streak]);
-
   useEffect(() => {
     AsyncStorage.setItem(
       "lastSubmitDate",
@@ -283,11 +348,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     AsyncStorage.setItem("goalsToday", JSON.stringify(goalsToday));
   }, [goalsToday]);
-
   useEffect(() => {
     AsyncStorage.setItem("prevGoals", JSON.stringify(prevGoals));
   }, [prevGoals]);
-
   useEffect(() => {
     AsyncStorage.setItem("managerNotes", JSON.stringify(managerNotes));
   }, [managerNotes]);
@@ -295,10 +358,17 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     AsyncStorage.setItem("goals", JSON.stringify(goals));
   }, [goals]);
-
   useEffect(() => {
     AsyncStorage.setItem("achievements", JSON.stringify(achievements));
   }, [achievements]);
+
+  useEffect(() => {
+    AsyncStorage.setItem("notifPrefs", JSON.stringify(notifPrefs));
+  }, [notifPrefs]);
+
+  useEffect(() => {
+    AsyncStorage.setItem("privacyPrefs", JSON.stringify(privacyPrefs));
+  }, [privacyPrefs]);
 
   // ---- Auth ----
   async function signIn(username: string) {
@@ -309,8 +379,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   async function signOut() {
     setIsAuthed(false);
-    // Optional: also clear runtime state if you want a “fresh” app after logout
-    // setHistory([]); setGoalsToday([]); setPrevGoals([]); etc.
   }
 
   // ---- Goals (new) ----
@@ -325,15 +393,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     };
     setGoalsToday((x) => [item, ...x]);
   }
-
-  // Visual toggle only (for green check flash)
   function toggleTodayGoal(id: number) {
     setGoalsToday((list) =>
       list.map((g) => (g.id === id ? { ...g, done: !g.done } : g))
     );
   }
-
-  // After short delay, move to accomplished
   function completeTodayGoal(id: number) {
     setGoalsToday((list) => {
       const item = list.find((g) => g.id === id);
@@ -345,7 +409,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       return list.filter((g) => g.id !== id);
     });
   }
-
   function removePrevGoal(id: number) {
     setPrevGoals((p) => p.filter((g) => g.id !== id));
   }
@@ -367,11 +430,43 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     role: string;
     org: string;
     avatarUri?: string;
+    email?: string;
+    phone?: string;
   }) {
     _setProfile(p);
   }
 
   // ---- Grading + streak ----
+  function gradeFrom(text: string, c: Criteria) {
+    let base = 60 + Math.min(20, Math.floor((text?.length || 0) / 80));
+    if (c.clarity) base += 5;
+    if (c.empathy) base += 6;
+    if (c.conciseness) base += 4;
+    if (c.objectionHandling) base += 3;
+    if (c.productKnowledge) base += 2;
+    return Math.max(0, Math.min(100, base));
+  }
+  function pickPositives(c: Criteria): string[] {
+    const out: string[] = [];
+    if (c.clarity) out.push("Clear structure and messaging");
+    if (c.empathy) out.push("Good rapport and empathetic language");
+    if (c.conciseness) out.push("Concise delivery with minimal filler");
+    if (c.objectionHandling) out.push("Handled objections effectively");
+    if (c.productKnowledge) out.push("Strong product knowledge");
+    if (!out.length) out.push("Engaging delivery");
+    return out.slice(0, 3);
+  }
+  function pickSuggestions(_: Criteria): string[] {
+    const bank = [
+      "Slow down slightly and pause after key points",
+      "Ask one more open-ended question",
+      "Summarize next steps at the end",
+      "Reduce filler words like 'um' and 'like'",
+      "Bring examples to illustrate benefits",
+    ];
+    return bank.slice(0, 3);
+  }
+
   async function addRecording(r: RecordingInput): Promise<Grade> {
     const score = gradeFrom(r.transcript, criteria);
     const g: Grade = {
@@ -399,7 +494,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       : score;
     setAvgScore(newAvg);
 
-    // Streak (daily)
     const now = Date.now();
     const today = epochDay(now);
     const last = lastSubmitDate != null ? epochDay(lastSubmitDate) : null;
@@ -416,7 +510,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setLastSubmitDate(now);
     }
 
-    // legacy achievements
     setAchievements((arr) =>
       arr.map((a) => (a.title === "First recording" ? { ...a, done: true } : a))
     );
@@ -432,7 +525,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     return g;
   }
 
-  const colors = DARK_COLORS; // fixed dark
+  const colors = DARK_COLORS;
 
   const value: AppState = useMemo(
     () => ({
@@ -468,11 +561,18 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       updateCriteria,
       history,
       addRecording,
-      deleteRecording, // ⬅️ now exported
+      deleteRecording,
+      updateRecordingNotes,
 
       // profile
       profile,
       setProfile,
+
+      // settings
+      notifPrefs,
+      setNotifPrefs,
+      privacyPrefs,
+      setPrivacyPrefs,
     }),
     [
       isAuthed,
@@ -488,6 +588,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       criteria,
       history,
       profile,
+      notifPrefs,
+      privacyPrefs,
     ]
   );
 
@@ -510,35 +612,4 @@ export function useTheme() {
   const ctx = useContext(ThemeCtx);
   if (!ctx) throw new Error("useTheme must be used within AppProvider");
   return ctx;
-}
-
-// ---- Placeholder grading heuristics ----
-function gradeFrom(text: string, c: Criteria) {
-  let base = 60 + Math.min(20, Math.floor((text?.length || 0) / 80));
-  if (c.clarity) base += 5;
-  if (c.empathy) base += 6;
-  if (c.conciseness) base += 4;
-  if (c.objectionHandling) base += 3;
-  if (c.productKnowledge) base += 2;
-  return Math.max(0, Math.min(100, base));
-}
-function pickPositives(c: Criteria): string[] {
-  const out: string[] = [];
-  if (c.clarity) out.push("Clear structure and messaging");
-  if (c.empathy) out.push("Good rapport and empathetic language");
-  if (c.conciseness) out.push("Concise delivery with minimal filler");
-  if (c.objectionHandling) out.push("Handled objections effectively");
-  if (c.productKnowledge) out.push("Strong product knowledge");
-  if (!out.length) out.push("Engaging delivery");
-  return out.slice(0, 3);
-}
-function pickSuggestions(_: Criteria): string[] {
-  const bank = [
-    "Slow down slightly and pause after key points",
-    "Ask one more open-ended question",
-    "Summarize next steps at the end",
-    "Reduce filler words like 'um' and 'like'",
-    "Bring examples to illustrate benefits",
-  ];
-  return bank.slice(0, 3);
 }

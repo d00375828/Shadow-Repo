@@ -1,3 +1,5 @@
+// A simple card with customizable background and border colors
+
 import React from "react";
 import { View, ViewStyle } from "react-native";
 

@@ -1,4 +1,4 @@
-// lib/network/uploadAudio.ts
+// Upload an audio file to the server and return the response text. Used to get transcription
 import { File } from "expo-file-system";
 import { fetch } from "expo/fetch";
 

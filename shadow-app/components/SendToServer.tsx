@@ -1,4 +1,4 @@
-// components/SendToServer.tsx
+// Sends the recorded audio file to the server and displays the response
 import { AUDIO_ENDPOINT } from "@/lib/api";
 import { uploadAudioFile } from "@/lib/network/uploadAudio";
 import React, { useState } from "react";

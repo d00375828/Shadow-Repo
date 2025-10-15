@@ -1,6 +1,30 @@
+// components/SectionTitle.tsx
 import React from "react";
-import { Text } from "react-native";
+import { StyleProp, Text, TextStyle } from "react-native";
 
-export default function SectionTitle({ children, color = "#fff" }: { children: React.ReactNode; color?: string }) {
-  return <Text style={{ color, fontWeight: "800", fontSize: 18, marginBottom: 8 }}>{children}</Text>;
+type Props = {
+  children: React.ReactNode;
+  color?: string;
+  style?: StyleProp<TextStyle>; // ⬅️ allow style overrides
+};
+
+export default function SectionTitle({
+  children,
+  color = "#fff",
+  style,
+}: Props) {
+  return (
+    <Text
+      style={[
+        {
+          color,
+          fontSize: 16,
+          fontWeight: "800",
+        },
+        style,
+      ]}
+    >
+      {children}
+    </Text>
+  );
 }

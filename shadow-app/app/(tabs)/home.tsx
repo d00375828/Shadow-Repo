@@ -15,6 +15,7 @@ import {
 } from "react-native";
 
 import AudioPlayer from "../../components/AudioPlayer";
+import PageHeader from "../../components/PageHeader";
 import Screen from "../../components/Screen";
 import SendToServer from "../../components/SendToServer";
 import { useApp, useTheme } from "../../context/AppContext";
@@ -97,6 +98,8 @@ export default function Home() {
 
   return (
     <Screen scroll={false} style={{ padding: 16, backgroundColor: colors.bg }}>
+      {/* Header */}
+      <PageHeader title="" />
       {/* Record Button */}
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
         <Animated.View
@@ -295,6 +298,7 @@ export default function Home() {
                     Server Feedback
                   </Text>
                   <SendToServer
+                    key={uri || "none"}
                     uri={uri}
                     onResponseText={(t) => setTranscript(t)}
                   />

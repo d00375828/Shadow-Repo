@@ -1,4 +1,4 @@
-// components/AudioPlayer.tsx
+// An audio player using expo-audio
 import { useAudioPlayer } from "expo-audio";
 import React, { useEffect, useState } from "react";
 import { Pressable, Text } from "react-native";

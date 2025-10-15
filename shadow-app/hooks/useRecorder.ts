@@ -6,7 +6,7 @@ import {
   useAudioRecorder,
 } from "expo-audio";
 import { useEffect, useRef, useState } from "react";
-import { Alert, Animated } from "react-native";
+import { Alert, Animated, Linking } from "react-native";
 
 export function useRecorder() {
   const recorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
@@ -14,39 +14,36 @@ export function useRecorder() {
   const [uri, setUri] = useState<string | null>(null);
   const [seconds, setSeconds] = useState(0);
   const [isRecording, setIsRecording] = useState(false);
-  const [prepared, setPrepared] = useState(false);
 
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Breath pulse animation state
+  // pulse animation
   const pulse = useRef(new Animated.Value(1)).current;
   const loopRef = useRef<Animated.CompositeAnimation | null>(null);
 
-  // Permissions + audio mode + eager prepare (once)
+  // session token to prevent stale async from a previous session
+  const sessionRef = useRef(0);
+
+  // Permissions + audio mode once
   useEffect(() => {
     (async () => {
       const status = await AudioModule.requestRecordingPermissionsAsync();
       if (!status.granted) {
         Alert.alert("Microphone permission is required to record.");
-        return;
-      }
-      await setAudioModeAsync({ playsInSilentMode: true, allowsRecording: true });
-      try {
-        await recorder.prepareToRecordAsync();
-        setPrepared(true);
-      } catch {
-        // We'll lazily prepare on start() if eager prepare fails.
+      } else {
+        await setAudioModeAsync({
+          playsInSilentMode: true,
+          allowsRecording: true,
+        });
       }
     })();
-    // Cleanup: stop timer & animation if unmounted mid-recording
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
       loopRef.current?.stop();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Animate while recording (BREATH: subtle in/out)
+  // Animate while recording
   useEffect(() => {
     if (isRecording) {
       loopRef.current = Animated.loop(
@@ -78,38 +75,72 @@ export function useRecorder() {
     timerRef.current = null;
   }
 
-  // Start/stop with optimistic UI (feels instant)
+  // Start/stop with session safety
   async function start() {
     if (isRecording) return;
-    setIsRecording(true);     // immediate visual feedback
+  
+    // Always re-check/request before recording
+    const perm = await AudioModule.requestRecordingPermissionsAsync();
+    if (!perm.granted) {
+      // Can't re-prompt if user already denied; give a Settings shortcut
+      Alert.alert(
+        "Microphone Access Needed",
+        "Please allow microphone access to start recording.",
+        [
+          { text: "Cancel", style: "cancel" },
+          { text: "Open Settings", onPress: () => Linking.openSettings() },
+        ]
+      );
+      return;
+    }
+  
+    // new session token (prevents stale updates)
+    sessionRef.current += 1;
+    const token = sessionRef.current;
+  
+    // clear previous file so children can't use a stale URI
+    setUri(null);
+  
+    // optimistic UI
+    setIsRecording(true);
     startTimer();
+  
     try {
-      if (!prepared) {
-        await recorder.prepareToRecordAsync();
-        setPrepared(true);
-      }
+      await setAudioModeAsync({ playsInSilentMode: true, allowsRecording: true });
+      await recorder.prepareToRecordAsync();
       await recorder.record();
+      if (token !== sessionRef.current) return; // user restarted quickly
     } catch (e: any) {
-      // revert on failure
-      setIsRecording(false);
-      stopTimer();
+      if (token === sessionRef.current) {
+        setIsRecording(false);
+        stopTimer();
+      }
       Alert.alert("Start error", String(e?.message ?? e));
     }
   }
 
   async function stop() {
     if (!isRecording) return;
-    setIsRecording(false);    // immediate visual feedback
+    const token = sessionRef.current;
+
+    // optimistic UI
+    setIsRecording(false);
     stopTimer();
+
     try {
       await recorder.stop();
-      setUri(recorder.uri ?? null);
+      // only set URI if still current session
+      if (token === sessionRef.current) {
+        setUri(recorder.uri ?? null);
+      }
     } catch (e: any) {
       Alert.alert("Stop error", String(e?.message ?? e));
     }
   }
 
   function reset() {
+    // invalidate any inflight async from a prior session
+    sessionRef.current += 1;
     setUri(null);
     setSeconds(0);
     setIsRecording(false);
