@@ -34,6 +34,7 @@ export type RecordingInput = {
   notes: string;
   uri: string | null;
   createdAt: number;
+  ai?: AiReport;
 };
 
 export type Grade = {
@@ -74,6 +75,20 @@ export type PrivacyPrefs = {
   location: boolean;
   microphone: boolean;
   access: AccessEntry[];
+};
+
+export type AiDialogueLine = { speaker: "salesman" | "prospect"; text: string };
+export type AiReport = {
+  transcriptionId: string;
+  overallScore: number;
+  strengths: string[];
+  areasForImprovement: string[];
+  recommendations: string[];
+  summary: string;
+  metrics: Record<string, number>;
+  dialogue: AiDialogueLine[];
+  serverTimestamp?: string;
+  fileSizeBytes?: number;
 };
 
 interface AppState {
@@ -195,6 +210,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       audioUri?: string | null;
       transcript?: string;
       notes?: string;
+      ai?: AiReport;
     })[]
   >([]);
 
@@ -468,7 +484,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }
 
   async function addRecording(r: RecordingInput): Promise<Grade> {
-    const score = gradeFrom(r.transcript, criteria);
+    const scoreFromAi = Number.isFinite(r.ai?.overallScore)
+      ? Number(r.ai!.overallScore)
+      : null;
+    const score = scoreFromAi ?? gradeFrom(r.transcript, criteria);
     const g: Grade = {
       id: Date.now(),
       createdAt: Date.now(),
@@ -483,6 +502,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         audioUri: r.uri,
         transcript: r.transcript?.trim() ?? "",
         notes: r.notes?.trim() ?? "",
+        ai: r.ai,
       },
       ...h,
     ]);

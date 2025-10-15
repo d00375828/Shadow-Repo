@@ -14,6 +14,7 @@ import {
   View,
 } from "react-native";
 
+import { GradeResult } from "@/lib/audio/grade";
 import AudioPlayer from "../../components/AudioPlayer";
 import PageHeader from "../../components/PageHeader";
 import Screen from "../../components/Screen";
@@ -39,6 +40,7 @@ export default function Home() {
   const [showReview, setShowReview] = useState(false);
   const [transcript, setTranscript] = useState("");
   const [notes, setNotes] = useState("");
+  const [aiResult, setAiResult] = useState<GradeResult | null>(null);
 
   const clock = useMemo(() => {
     const m = Math.floor(seconds / 60)
@@ -69,10 +71,12 @@ export default function Home() {
         notes: notes.trim(),
         uri,
         createdAt: Date.now(),
+        ai: aiResult?.ai, // ⬅️ store report
       });
       setShowReview(false);
       setTranscript("");
       setNotes("");
+      setAiResult(null); // ⬅️ clear
       reset();
       Alert.alert("Saved", "You can view your grade in history");
     } catch (e: any) {
@@ -298,9 +302,9 @@ export default function Home() {
                     Server Feedback
                   </Text>
                   <SendToServer
-                    key={uri || "none"}
                     uri={uri}
-                    onResponseText={(t) => setTranscript(t)}
+                    onResponseText={(t) => setTranscript(t)} // derived transcript
+                    onAiReport={(res) => setAiResult(res)} // ⬅️ capture AI report
                   />
                 </View>
               ) : null}

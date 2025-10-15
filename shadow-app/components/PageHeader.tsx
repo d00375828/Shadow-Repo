@@ -33,7 +33,7 @@ export default function PageHeader({
       ]}
     >
       {/* Left cluster: optional left control + title */}
-      <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
         {left}
         <Text style={{ color: colors.fg, fontSize: 24, fontWeight: "800" }}>
           {title}
@@ -47,7 +47,7 @@ export default function PageHeader({
             color: colors.border, // match your border color
             fontSize: 18,
             fontWeight: "900",
-            letterSpacing: 1.2,
+            letterSpacing: 0.5,
           }}
         >
           {brandText.toUpperCase()}

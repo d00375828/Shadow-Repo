@@ -59,7 +59,7 @@ export default function RadarChart({
   values,
   series,
   gridColor = "#333",
-  gridDash = [4, 4],
+  gridDash = [1, 5],
   axisCapRadius = 2.5,
   labelColor = "#aaa",
   labelFontSize = 11,

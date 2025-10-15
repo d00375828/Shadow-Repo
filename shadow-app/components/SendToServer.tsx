@@ -1,9 +1,11 @@
-// Sends the recorded audio file to the server and displays the response
+// components/SendToServer.tsx
 import { AUDIO_ENDPOINT } from "@/lib/api";
-import { uploadAudioFile } from "@/lib/network/uploadAudio";
+import { GradeResult, normalizeServerGrade } from "@/lib/audio/grade";
+import * as FileSystem from "expo-file-system/legacy";
 import React, { useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   Platform,
   Pressable,
   Text,
@@ -13,7 +15,8 @@ import {
 type Props = {
   uri: string | null;
   buttonLabel?: string;
-  onResponseText?: (text: string) => void; // we'll pass the transcription up
+  onResponseText?: (text: string) => void; // updates Transcript input
+  onAiReport?: (result: GradeResult) => void; // returns normalized report
   colors?: {
     accent: string;
     onAccent: string;
@@ -24,10 +27,16 @@ type Props = {
   };
 };
 
+function isM4A(u: string) {
+  const lower = u.split("?")[0].toLowerCase();
+  return lower.endsWith(".m4a");
+}
+
 export default function SendToServer({
   uri,
   buttonLabel = "Send to Server",
   onResponseText,
+  onAiReport,
   colors = {
     accent: "#4F46E5",
     onAccent: "#FFFFFF",
@@ -41,31 +50,79 @@ export default function SendToServer({
   const [serverText, setServerText] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  async function uploadBinaryNative(fileUri: string) {
+    // Resolve the BINARY enum value safely across SDK variants:
+    const BINARY =
+      // Newer SDKs sometimes place it here at runtime
+      (FileSystem as any)?.FileSystemUploadType?.BINARY_CONTENT ??
+      // Fallback: Expo internally uses 0 for binary upload type
+      0;
+
+    const res = await FileSystem.uploadAsync(AUDIO_ENDPOINT, fileUri, {
+      httpMethod: "POST",
+      headers: {
+        "Content-Type": "audio/m4a",
+        Accept: "application/json, text/plain, */*",
+      },
+      // TypeScript will accept a number here even if the enum type isn't visible
+      uploadType: BINARY as number,
+    });
+
+    return { status: res.status, body: res.body };
+  }
+
+  async function uploadBinaryWeb(fileUri: string) {
+    const resp = await fetch(fileUri);
+    const blob = await resp.blob();
+    const r = await fetch(AUDIO_ENDPOINT, {
+      method: "POST",
+      headers: {
+        "Content-Type": "audio/m4a",
+        Accept: "application/json, text/plain, */*",
+      },
+      body: blob,
+    });
+    const body = await r.text();
+    return { status: r.status, body };
+  }
+
   async function handleSend() {
     if (!uri) return;
+
+    // Optional guard: server only accepts .m4a
+    if (!isM4A(uri)) {
+      Alert.alert(
+        "Unsupported file",
+        "This server only accepts .m4a audio files. Please re-record and try again."
+      );
+      return;
+    }
+
     setSending(true);
     setError(null);
     setServerText(null);
-    try {
-      const text = await uploadAudioFile(uri, AUDIO_ENDPOINT);
 
-      // Try to parse JSON; if it fails, just show raw text
-      let pretty = text;
+    try {
+      const { status, body } =
+        Platform.OS === "web"
+          ? await uploadBinaryWeb(uri)
+          : await uploadBinaryNative(uri);
+
+      if (!(status >= 200 && status < 300)) {
+        throw new Error(`Upload failed (${status}): ${body}`);
+      }
+
+      // Pretty print & normalize
+      let pretty = body;
       try {
-        const data = JSON.parse(text);
-        // pretty-print JSON for the UI
+        const data = JSON.parse(body);
         pretty = JSON.stringify(data, null, 2);
 
-        // If the server returns a transcription string, bubble it up to the notes box
-        const t =
-          typeof data?.transcription === "string"
-            ? data.transcription
-            : typeof data?.text === "string"
-            ? data.text
-            : null;
-        if (t) onResponseText?.(t);
+        const normalized = normalizeServerGrade(data);
+        onResponseText?.(normalized.transcript); // fill transcript box from dialogue
+        onAiReport?.(normalized); // bubble full AI report to Home
       } catch {
-        // leave as raw text
+        // non-JSON; show raw
       }
 
       setServerText(pretty);
@@ -119,11 +176,12 @@ export default function SendToServer({
           <Text
             style={{
               color: colors.muted,
-              fontFamily: Platform.select({
-                ios: "Menlo",
-                android: "monospace",
-                default: undefined,
-              }),
+              fontFamily:
+                Platform.OS === "ios"
+                  ? "Menlo"
+                  : Platform.OS === "android"
+                  ? "monospace"
+                  : undefined,
             }}
           >
             {serverText}
