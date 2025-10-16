@@ -18,8 +18,9 @@ export default function SectionTitle({
       style={[
         {
           color,
-          fontSize: 16,
-          fontWeight: "800",
+          fontSize: 20,
+          fontWeight: "600",
+          textAlign: "center",
         },
         style,
       ]}

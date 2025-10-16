@@ -71,12 +71,12 @@ export default function Home() {
         notes: notes.trim(),
         uri,
         createdAt: Date.now(),
-        ai: aiResult?.ai, // ⬅️ store report
+        ai: aiResult?.ai, // store report
       });
       setShowReview(false);
       setTranscript("");
       setNotes("");
-      setAiResult(null); // ⬅️ clear
+      setAiResult(null);
       reset();
       Alert.alert("Saved", "You can view your grade in history");
     } catch (e: any) {
@@ -104,6 +104,7 @@ export default function Home() {
     <Screen scroll={false} style={{ padding: 16, backgroundColor: colors.bg }}>
       {/* Header */}
       <PageHeader title="" />
+
       {/* Record Button */}
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
         <Animated.View
@@ -232,7 +233,7 @@ export default function Home() {
                 <Text style={{ color: colors.muted }}>No audio found.</Text>
               )}
 
-              {/* Notes / transcript */}
+              {/* Transcript */}
               <View style={{ flex: 1 }}>
                 <Text
                   style={{
@@ -261,6 +262,7 @@ export default function Home() {
                 />
               </View>
 
+              {/* Notes */}
               <View style={{ flex: 1 }}>
                 <Text
                   style={{
@@ -289,24 +291,15 @@ export default function Home() {
                 />
               </View>
 
-              {/* Server Feedback */}
+              {/* Send button (no visible server feedback) */}
               {uri ? (
-                <View>
-                  <Text
-                    style={{
-                      color: colors.fg,
-                      fontWeight: "700",
-                      marginBottom: 8,
-                    }}
-                  >
-                    Server Feedback
-                  </Text>
-                  <SendToServer
-                    uri={uri}
-                    onResponseText={(t) => setTranscript(t)} // derived transcript
-                    onAiReport={(res) => setAiResult(res)} // ⬅️ capture AI report
-                  />
-                </View>
+                <SendToServer
+                  uri={uri}
+                  onResponseText={(t) => setTranscript(t)}
+                  onAiReport={(res) => setAiResult(res)}
+                  showResponse={false}
+                  showError={false}
+                />
               ) : null}
 
               {/* Action bar */}

@@ -25,6 +25,10 @@ type Props = {
     muted: string;
     border: string;
   };
+  /** Hide the pretty-printed server response box (keeps button + spinner) */
+  showResponse?: boolean;
+  /** Hide the error box (errors still logged to console) */
+  showError?: boolean;
 };
 
 function isM4A(u: string) {
@@ -34,7 +38,7 @@ function isM4A(u: string) {
 
 export default function SendToServer({
   uri,
-  buttonLabel = "Send to Server",
+  buttonLabel = "Grade",
   onResponseText,
   onAiReport,
   colors = {
@@ -45,6 +49,8 @@ export default function SendToServer({
     muted: "#475569",
     border: "#CBD5E1",
   },
+  showResponse = true,
+  showError = true,
 }: Props) {
   const [sending, setSending] = useState(false);
   const [serverText, setServerText] = useState<string | null>(null);
@@ -53,10 +59,7 @@ export default function SendToServer({
   async function uploadBinaryNative(fileUri: string) {
     // Resolve the BINARY enum value safely across SDK variants:
     const BINARY =
-      // Newer SDKs sometimes place it here at runtime
-      (FileSystem as any)?.FileSystemUploadType?.BINARY_CONTENT ??
-      // Fallback: Expo internally uses 0 for binary upload type
-      0;
+      (FileSystem as any)?.FileSystemUploadType?.BINARY_CONTENT ?? 0;
 
     const res = await FileSystem.uploadAsync(AUDIO_ENDPOINT, fileUri, {
       httpMethod: "POST",
@@ -64,7 +67,6 @@ export default function SendToServer({
         "Content-Type": "audio/m4a",
         Accept: "application/json, text/plain, */*",
       },
-      // TypeScript will accept a number here even if the enum type isn't visible
       uploadType: BINARY as number,
     });
 
@@ -156,9 +158,11 @@ export default function SendToServer({
         </Text>
       </Pressable>
 
+      {/* Spinner stays visible while sending */}
       {sending && <ActivityIndicator />}
 
-      {serverText ? (
+      {/* Conditionally show response box */}
+      {showResponse && serverText ? (
         <View
           style={{
             backgroundColor: colors.box,
@@ -189,7 +193,8 @@ export default function SendToServer({
         </View>
       ) : null}
 
-      {error ? (
+      {/* Conditionally show error box */}
+      {showError && error ? (
         <View
           style={{
             backgroundColor: "#FEE2E2",

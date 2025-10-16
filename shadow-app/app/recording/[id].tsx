@@ -320,7 +320,7 @@ ${(r.notes || "").trim() || "(none)"}
 
           {showHighlights ? (
             strengths.length || areas.length || recs.length ? (
-              <View style={{ gap: 14 }}>
+              <View style={{ gap: 30 }}>
                 {strengths.length ? (
                   <ChipBlock title="Strengths" items={strengths} />
                 ) : null}
@@ -523,9 +523,22 @@ function MetaPill({
 function ChipBlock({ title, items }: { title: string; items: string[] }) {
   const { colors } = useTheme();
   return (
-    <View style={{ gap: 8 }}>
-      <Text style={{ color: colors.fg, fontWeight: "800" }}>{title}</Text>
-      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+    <View style={{ gap: 18 }}>
+      <Text
+        style={{
+          color: colors.fg,
+          fontWeight: "800",
+          fontSize: 18,
+          textAlign: "center",
+          textDecorationLine: "underline",
+          textDecorationColor: colors.border,
+          textDecorationStyle: "solid",
+          letterSpacing: 0.06,
+        }}
+      >
+        {title}
+      </Text>
+      <View style={{ gap: 12 }}>
         {items.map((t, i) => (
           <View
             key={`${title}-${i}`}
@@ -533,13 +546,12 @@ function ChipBlock({ title, items }: { title: string; items: string[] }) {
               backgroundColor: "#0e0e0e",
               borderWidth: 1,
               borderColor: colors.border,
+              borderRadius: 10,
               paddingHorizontal: 10,
-              paddingVertical: 6,
-              borderRadius: 9999,
-              maxWidth: "100%",
+              paddingVertical: 8,
             }}
           >
-            <Text style={{ color: colors.muted }}>{t}</Text>
+            <Text style={{ color: colors.muted, lineHeight: 20 }}>{t}</Text>
           </View>
         ))}
       </View>
