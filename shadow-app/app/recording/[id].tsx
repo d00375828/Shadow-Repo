@@ -13,16 +13,16 @@ import {
 } from "react-native";
 
 import PageHeader from "@/components/PageHeader";
+import { useRecordings, useTheme } from "@/context";
 import AudioPlayer from "../../components/AudioPlayer";
 import Card from "../../components/Card";
 import Screen from "../../components/Screen";
 import SectionTitle from "../../components/SectionTitle";
-import { useApp, useTheme } from "../../context/AppContext";
 
 export default function RecordingDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { colors } = useTheme();
-  const { history, deleteRecording, updateRecordingNotes } = useApp();
+  const { history, deleteRecording, updateRecordingNotes } = useRecordings();
 
   const rec = useMemo(() => {
     const key = String(id);

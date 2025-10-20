@@ -1,9 +1,8 @@
-// A modal for selecting grading criteria with checkboxes and save/cancel buttons ( Not currently used)
-
+// components/CriteriaModal.tsx
+import type { Criteria } from "@/context";
+import { useTheme } from "@/context";
 import React, { useEffect, useState } from "react";
 import { Pressable, Text, View } from "react-native";
-import type { Criteria } from "../context/AppContext";
-import { useTheme } from "../context/AppContext";
 import SafeModal from "./SafeModal";
 
 type Props = {
@@ -21,6 +20,7 @@ export default function CriteriaModal({
 }: Props) {
   const { colors } = useTheme();
   const [local, setLocal] = useState<Criteria>(criteria);
+
   useEffect(() => {
     if (open) setLocal(criteria);
   }, [open, criteria]);
@@ -28,22 +28,13 @@ export default function CriteriaModal({
   return (
     <SafeModal
       visible={open}
-      animationType="slide"
-      onRequestClose={onClose}
-      backgroundColor={colors.bg}
+      onClose={onClose}
+      title="Grading Criteria"
+      bg={colors.box}
+      overlay="rgba(0,0,0,0.5)"
+      borderColor={colors.border}
+      textColor={colors.fg}
     >
-      <Text
-        style={{
-          color: colors.fg,
-          fontSize: 18,
-          fontWeight: "800",
-          marginBottom: 12,
-          textAlign: "center",
-        }}
-      >
-        Grading Criteria
-      </Text>
-
       {Object.keys(local).map((k) => {
         const key = k as keyof Criteria;
         const active = local[key];

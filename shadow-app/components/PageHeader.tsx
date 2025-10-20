@@ -1,7 +1,7 @@
 // components/PageHeader.tsx
+import { useTheme } from "@/context";
 import React from "react";
 import { Text, View, ViewStyle } from "react-native";
-import { useTheme } from "../context/AppContext";
 
 type Props = {
   title: string;

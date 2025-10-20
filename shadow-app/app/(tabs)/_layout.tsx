@@ -1,10 +1,10 @@
+import { useAuth, useTheme } from "@/context";
 import { Ionicons } from "@expo/vector-icons";
 import { Tabs, useRouter } from "expo-router";
 import { useEffect } from "react";
-import { useApp, useTheme } from "../../context/AppContext";
 
 export default function TabsLayout() {
-  const { isAuthed } = useApp();
+  const { isAuthed } = useAuth();
   const { colors } = useTheme();
   const router = useRouter();
 

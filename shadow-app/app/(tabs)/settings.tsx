@@ -5,11 +5,11 @@ import React, { useState } from "react";
 import { Alert, Pressable, Text, View } from "react-native";
 
 import PageHeader from "@/components/PageHeader";
+import { useAuth, useTheme } from "@/context";
 import Card from "../../components/Card";
 import SafeModal from "../../components/SafeModal";
 import Screen from "../../components/Screen";
 import SectionTitle from "../../components/SectionTitle";
-import { useApp, useTheme } from "../../context/AppContext";
 
 const LEADING_ICON_SIZE = 26;
 const CHEVRON_ICON_SIZE = 22;
@@ -66,7 +66,7 @@ function NavCard({
 
 export default function SettingsHub() {
   const { colors } = useTheme();
-  const { signOut } = useApp();
+  const { signOut } = useAuth();
   const [showHelp, setShowHelp] = useState(false);
 
   function doSignOut() {

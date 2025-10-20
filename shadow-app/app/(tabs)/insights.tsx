@@ -1,4 +1,5 @@
 // app/(tabs)/insights.tsx
+import { useRecordings, useTheme } from "@/context";
 import { ORDERED_METRIC_LABELS } from "@/lib/audio/grade";
 import React, { useMemo } from "react";
 import { Text, View } from "react-native";
@@ -6,7 +7,6 @@ import Card from "../../components/Card";
 import RadarChart from "../../components/RadarChart";
 import Screen from "../../components/Screen";
 import SectionTitle from "../../components/SectionTitle";
-import { useApp, useTheme } from "../../context/AppContext";
 
 function metricOf(item: any, label: string): number {
   const v = item?.ai?.metrics?.[label];
@@ -16,7 +16,7 @@ function metricOf(item: any, label: string): number {
 
 export default function Insights() {
   const { colors } = useTheme();
-  const { history } = useApp();
+  const { history } = useRecordings();
   const items = Array.isArray(history) ? history : [];
 
   // Overall Pitch Grade (prefer server overallScore)

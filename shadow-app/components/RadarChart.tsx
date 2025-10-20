@@ -8,6 +8,7 @@ import Svg, {
   Polygon,
   Rect,
   Text as SvgText,
+  TSpan,
 } from "react-native-svg";
 
 type Series = {
@@ -31,7 +32,12 @@ type Props = {
   // axis labels
   labelColor?: string;
   labelFontSize?: number;
-  labelRadius?: number; // 0..1
+  labelRadius?: number;
+  outerMargin?: number; // extra canvas space around the chart
+  labelWrap?: boolean; // enable word-wrapping
+  labelMaxCharsPerLine?: number; // wrap width heuristic
+  labelMaxLines?: number; // cap lines
+  labelLineHeight?: number;
   // ring percent labels
   showRingPercents?: boolean;
   ringLabelColor?: string;
@@ -66,18 +72,24 @@ export default function RadarChart({
   labelRadius = 0.88,
   showRingPercents = true,
   ringLabelColor = "#6e6e6e",
-  ringLabelAxis = "top", // ⬅️ default to TOP so % go UP
-  showPoints = false, // ⬅️ OFF by default
+  ringLabelAxis = "top",
+  showPoints = false,
   pointRadius = 5,
   pointStroke = "#000",
   pointStrokeWidth = 1.6,
-  showValueLabels = false, // ⬅️ OFF by default
+  showValueLabels = false,
   valueLabelColor = "#ddd",
   valueLabelFontSize = 11,
   animate = true,
   animationDuration = 300,
   showLegend = true,
   legendTextColor = "#bbb",
+  // NEW:
+  outerMargin = 24,
+  labelWrap = true,
+  labelMaxCharsPerLine = 10,
+  labelMaxLines = 2,
+  labelLineHeight = Math.round(1.25 * 11), // ~1.25 * default font
 }: Props) {
   const palette = ["#4cff00", "#6ba5ff", "#ffb74d", "#e57373", "#b39ddb"];
   const seriesData: Series[] = useMemo(() => {
@@ -99,8 +111,10 @@ export default function RadarChart({
   const n = labels.length;
   if (!n || n < 3 || seriesData.some((s) => s.values.length !== n)) return null;
 
-  const cx = size / 2;
-  const cy = size / 2;
+  // Canvas is larger than the radar "size" to allow label overflow without clipping
+  const canvasSize = size + outerMargin * 2;
+  const cx = canvasSize / 2;
+  const cy = canvasSize / 2;
   const padding = 20;
   const R = size / 2 - padding;
 
@@ -140,8 +154,43 @@ export default function RadarChart({
     return { s, pts, path, color: s.stroke ?? palette[si % palette.length] };
   });
 
+  // --- Simple word wrap helper for SVG labels ---
+  function wrapWords(
+    text: string,
+    maxChars: number,
+    maxLines: number
+  ): string[] {
+    const words = (text || "").split(/\s+/);
+    const lines: string[] = [];
+    let line = "";
+
+    for (const w of words) {
+      const trial = line ? `${line} ${w}` : w;
+      if (trial.length <= maxChars) {
+        line = trial;
+      } else {
+        if (line) lines.push(line);
+        line = w;
+        if (lines.length >= maxLines - 1) break;
+      }
+    }
+    if (line && lines.length < maxLines) lines.push(line);
+
+    // Ellipsize if truncated
+    const joined = lines.join(" ");
+    if ((text || "").length > joined.length && lines.length) {
+      const last = lines[lines.length - 1];
+      lines[lines.length - 1] =
+        last.length > 1
+          ? last.replace(/\.*$/, "").slice(0, Math.max(1, last.length - 1)) +
+            "…"
+          : "…";
+    }
+    return lines;
+  }
+
   return (
-    <Svg width={size} height={size}>
+    <Svg width={canvasSize} height={canvasSize}>
       {/* grid rings */}
       {Array.from({ length: levels }, (_, li) => {
         const r = (R * (li + 1)) / levels;
@@ -197,25 +246,40 @@ export default function RadarChart({
           );
         })}
 
-      {/* axis labels (kept inside rim) */}
+      {/* axis labels (wrapped & kept inside rim) */}
       {labels.map((lab, i) => {
         const a = angle(i);
         const lp = pointAt(labelRadius, i);
         const cos = Math.cos(a);
+        const sin = Math.sin(a);
+
         const anchor = cos > 0.15 ? "start" : cos < -0.15 ? "end" : "middle";
         const dx = cos > 0 ? 4 : cos < 0 ? -4 : 0;
-        const dy = Math.sin(a) > 0 ? 2 : Math.sin(a) < 0 ? -2 : 0;
+        const dyBase = sin > 0 ? 2 : sin < 0 ? -2 : 0;
+
+        const lines = labelWrap
+          ? wrapWords(lab, labelMaxCharsPerLine, labelMaxLines)
+          : [lab];
+
         return (
           <SvgText
             key={`lab-${i}`}
             x={lp.x + dx}
-            y={lp.y + dy}
+            y={lp.y + dyBase}
             fill={labelColor}
             fontSize={labelFontSize}
             alignmentBaseline="middle"
             textAnchor={anchor as any}
           >
-            {lab}
+            {lines.map((ln, idx) => (
+              <TSpan
+                key={idx}
+                x={lp.x + dx}
+                dy={idx === 0 ? 0 : labelLineHeight}
+              >
+                {ln}
+              </TSpan>
+            ))}
           </SvgText>
         );
       })}
@@ -282,9 +346,9 @@ export default function RadarChart({
       {showLegend && seriesPolys.length > 1 && (
         <G>
           <Rect
-            x={padding}
-            y={size - padding - 22}
-            width={size - padding * 2}
+            x={outerMargin}
+            y={canvasSize - outerMargin - 22}
+            width={canvasSize - outerMargin * 2}
             height={18}
             rx={6}
             fill="rgba(255,255,255,0.03)"
@@ -292,8 +356,8 @@ export default function RadarChart({
           {seriesPolys.map(({ s, color }, i) => (
             <G
               key={`leg-${i}`}
-              transform={`translate(${padding + 8 + i * 110}, ${
-                size - padding - 13
+              transform={`translate(${outerMargin + 8 + i * 110}, ${
+                canvasSize - outerMargin - 13
               })`}
             >
               <Rect

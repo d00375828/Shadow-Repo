@@ -1,6 +1,7 @@
 // app/(tabs)/chat.tsx
 import Composer from "@/components/Composer";
 import MessageBubble from "@/components/MessageBubble";
+import { useTheme } from "@/context";
 import { useChat } from "@/hooks/useChat";
 import React, { useState } from "react";
 import {
@@ -12,7 +13,6 @@ import {
 } from "react-native";
 import PageHeader from "../../components/PageHeader";
 import Screen from "../../components/Screen";
-import { useTheme } from "../../context/AppContext";
 
 export default function Chat() {
   const { colors } = useTheme();

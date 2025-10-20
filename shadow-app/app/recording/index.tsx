@@ -4,10 +4,10 @@ import { router } from "expo-router";
 import React, { useMemo } from "react";
 import { Pressable, SectionList, Text, View } from "react-native";
 
+import { useRecordings, useTheme } from "@/context";
 import Card from "../../components/Card";
 import PageHeader from "../../components/PageHeader";
 import Screen from "../../components/Screen";
-import { useApp, useTheme } from "../../context/AppContext";
 
 type HistoryItem = {
   id?: string | number;
@@ -25,7 +25,7 @@ type Section = {
 
 export default function RecordingsList() {
   const { colors } = useTheme();
-  const { history } = useApp();
+  const { history } = useRecordings();
 
   const sections: Section[] = useMemo(() => {
     const byDay = new Map<string, HistoryItem[]>();

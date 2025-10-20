@@ -1,11 +1,11 @@
 // app/(tabs)/training.tsx
+import { useTheme } from "@/context";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React from "react";
 import { Pressable, Text, View } from "react-native";
 import PageHeader from "../../components/PageHeader";
 import Screen from "../../components/Screen";
-import { useTheme } from "../../context/AppContext";
 
 export default function Training() {
   const { colors } = useTheme();

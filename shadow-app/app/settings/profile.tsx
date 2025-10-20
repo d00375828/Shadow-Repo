@@ -14,15 +14,15 @@ import {
   View,
 } from "react-native";
 
+import { useProfile, useTheme } from "@/context";
 import Card from "../../components/Card";
 import PageHeader from "../../components/PageHeader";
 import Screen from "../../components/Screen";
 import SectionTitle from "../../components/SectionTitle";
-import { useApp, useTheme } from "../../context/AppContext";
 
 export default function ProfileSettings() {
   const { colors } = useTheme();
-  const { profile, setProfile } = useApp();
+  const { profile, setProfile } = useProfile();
 
   const [avatarUri, setAvatarUri] = useState(profile.avatarUri ?? "");
   const [name, setName] = useState(profile.name ?? "");

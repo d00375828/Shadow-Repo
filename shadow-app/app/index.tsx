@@ -1,9 +1,16 @@
 // Login screen
 
-import { useState } from "react";
+import { useAuth, useTheme } from "@/context";
 import { router } from "expo-router";
-import { Modal, Pressable, Text, TextInput, View, useWindowDimensions } from "react-native";
-import { useApp, useTheme } from "../context/AppContext";
+import { useState } from "react";
+import {
+  Modal,
+  Pressable,
+  Text,
+  TextInput,
+  View,
+  useWindowDimensions,
+} from "react-native";
 import useIsLandscape from "../hooks/useIsLandscape";
 
 const faqs = [
@@ -13,11 +20,13 @@ const faqs = [
 
 export default function Login() {
   const { colors } = useTheme();
-  const { signIn } = useApp();
+  const { signIn } = useAuth();
   const isLandscape = useIsLandscape();
   const { width } = useWindowDimensions();
 
-  const cardWidth = isLandscape ? Math.min(520, Math.max(380, width * 0.5)) : undefined;
+  const cardWidth = isLandscape
+    ? Math.min(520, Math.max(380, width * 0.5))
+    : undefined;
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -64,27 +73,55 @@ export default function Login() {
         <View style={{ gap: 12 }}>
           <TextInput
             value={username}
-            onChangeText={(t) => { setUsername(t); if (error) setError(""); }}
+            onChangeText={(t) => {
+              setUsername(t);
+              if (error) setError("");
+            }}
             placeholder="Username"
             placeholderTextColor={colors.muted}
             autoCapitalize="none"
-            style={{ backgroundColor: colors.box, color: colors.fg, padding: 14, borderRadius: 12, borderWidth: 1, borderColor: colors.border }}
+            style={{
+              backgroundColor: colors.box,
+              color: colors.fg,
+              padding: 14,
+              borderRadius: 12,
+              borderWidth: 1,
+              borderColor: colors.border,
+            }}
           />
           <View style={{ position: "relative" }}>
             <TextInput
               value={password}
-              onChangeText={(t) => { setPassword(t); if (error) setError(""); }}
+              onChangeText={(t) => {
+                setPassword(t);
+                if (error) setError("");
+              }}
               placeholder="Password"
               placeholderTextColor={colors.muted}
               secureTextEntry={!showPw}
-              style={{ backgroundColor: colors.box, color: colors.fg, padding: 14, borderRadius: 12, borderWidth: 1, borderColor: colors.border, paddingRight: 60 }}
+              style={{
+                backgroundColor: colors.box,
+                color: colors.fg,
+                padding: 14,
+                borderRadius: 12,
+                borderWidth: 1,
+                borderColor: colors.border,
+                paddingRight: 60,
+              }}
             />
-            <Pressable onPress={() => setShowPw((s) => !s)} style={{ position: "absolute", right: 10, top: 10, padding: 8 }}>
-              <Text style={{ color: colors.accent, fontWeight: "700" }}>{showPw ? "Hide" : "Show"}</Text>
+            <Pressable
+              onPress={() => setShowPw((s) => !s)}
+              style={{ position: "absolute", right: 10, top: 10, padding: 8 }}
+            >
+              <Text style={{ color: colors.accent, fontWeight: "700" }}>
+                {showPw ? "Hide" : "Show"}
+              </Text>
             </Pressable>
           </View>
 
-          {!!error && <Text style={{ color: "#ff6666", fontSize: 13 }}>{error}</Text>}
+          {!!error && (
+            <Text style={{ color: "#ff6666", fontSize: 13 }}>{error}</Text>
+          )}
 
           <Pressable
             onPress={onSignIn}
@@ -97,29 +134,84 @@ export default function Login() {
               marginTop: 8,
             })}
           >
-            <Text style={{ fontWeight: "700", color: colors.onAccent }}>Sign In</Text>
+            <Text style={{ fontWeight: "700", color: colors.onAccent }}>
+              Sign In
+            </Text>
           </Pressable>
         </View>
       </View>
 
-      <Pressable onPress={() => setOpen(true)} style={{ position: "absolute", right: 16, bottom: 24 }}>
-        <Text style={{ color: colors.peach, fontSize: 28, fontWeight: "900" }}>?</Text>
+      <Pressable
+        onPress={() => setOpen(true)}
+        style={{ position: "absolute", right: 16, bottom: 24 }}
+      >
+        <Text style={{ color: colors.peach, fontSize: 28, fontWeight: "900" }}>
+          ?
+        </Text>
       </Pressable>
 
-      <Modal visible={open} transparent animationType="fade" onRequestClose={() => setOpen(false)}>
-        <View style={{ flex: 1, backgroundColor: "#000a", justifyContent: "center", padding: 24 }}>
-          <View style={{ backgroundColor: colors.box, borderRadius: 16, padding: 20, gap: 8 }}>
-            <Text style={{ color: colors.fg, fontSize: 18, fontWeight: "700", textAlign: "center" }}>Help & Contact</Text>
+      <Modal
+        visible={open}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setOpen(false)}
+      >
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: "#000a",
+            justifyContent: "center",
+            padding: 24,
+          }}
+        >
+          <View
+            style={{
+              backgroundColor: colors.box,
+              borderRadius: 16,
+              padding: 20,
+              gap: 8,
+            }}
+          >
+            <Text
+              style={{
+                color: colors.fg,
+                fontSize: 18,
+                fontWeight: "700",
+                textAlign: "center",
+              }}
+            >
+              Help & Contact
+            </Text>
             {faqs.map((f, i) => (
-              <View key={i} style={{ borderTopWidth: i ? 1 : 0, borderTopColor: colors.border, paddingTop: i ? 8 : 0 }}>
-                <Pressable onPress={() => setExpanded(expanded === i ? null : i)}>
-                  <Text style={{ color: colors.fg, fontWeight: "600" }}>{f.q}</Text>
+              <View
+                key={i}
+                style={{
+                  borderTopWidth: i ? 1 : 0,
+                  borderTopColor: colors.border,
+                  paddingTop: i ? 8 : 0,
+                }}
+              >
+                <Pressable
+                  onPress={() => setExpanded(expanded === i ? null : i)}
+                >
+                  <Text style={{ color: colors.fg, fontWeight: "600" }}>
+                    {f.q}
+                  </Text>
                 </Pressable>
-                {expanded === i && <Text style={{ color: colors.muted, marginTop: 4 }}>{f.a}</Text>}
+                {expanded === i && (
+                  <Text style={{ color: colors.muted, marginTop: 4 }}>
+                    {f.a}
+                  </Text>
+                )}
               </View>
             ))}
-            <Pressable onPress={() => setOpen(false)} style={{ alignSelf: "center", marginTop: 8 }}>
-              <Text style={{ color: colors.accent, fontWeight: "700" }}>Close</Text>
+            <Pressable
+              onPress={() => setOpen(false)}
+              style={{ alignSelf: "center", marginTop: 8 }}
+            >
+              <Text style={{ color: colors.accent, fontWeight: "700" }}>
+                Close
+              </Text>
             </Pressable>
           </View>
         </View>

@@ -4,15 +4,15 @@ import { router } from "expo-router";
 import React from "react";
 import { Pressable, Switch, Text, View } from "react-native";
 
+import { useNotifications, useTheme } from "@/context";
 import Card from "../../components/Card";
 import PageHeader from "../../components/PageHeader";
 import Screen from "../../components/Screen";
 import SectionTitle from "../../components/SectionTitle";
-import { useApp, useTheme } from "../../context/AppContext";
 
 export default function NotificationsSettings() {
   const { colors } = useTheme();
-  const { notifPrefs, setNotifPrefs } = useApp();
+  const { notifPrefs, setNotifPrefs } = useNotifications();
 
   return (
     <Screen style={{ padding: 16, backgroundColor: colors.bg }}>

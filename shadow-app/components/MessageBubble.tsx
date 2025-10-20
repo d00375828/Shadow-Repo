@@ -1,5 +1,5 @@
 // Presentational chat bubble
-import { useTheme } from "@/context/AppContext";
+import { useTheme } from "@/context";
 import type { Msg } from "@/lib/chat/types";
 import React from "react";
 import { Text, View } from "react-native";

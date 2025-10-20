@@ -14,17 +14,17 @@ import {
   View,
 } from "react-native";
 
+import { useRecordings, useTheme } from "@/context";
 import { GradeResult } from "@/lib/audio/grade";
 import AudioPlayer from "../../components/AudioPlayer";
 import PageHeader from "../../components/PageHeader";
 import Screen from "../../components/Screen";
 import SendToServer from "../../components/SendToServer";
-import { useApp, useTheme } from "../../context/AppContext";
 import { useRecorder } from "../../hooks/useRecorder";
 
 export default function Home() {
   const { colors } = useTheme();
-  const { addRecording } = useApp();
+  const { addRecording } = useRecordings();
 
   const { isRecording, uri, seconds, pulse, start, stop, reset } =
     useRecorder();

@@ -1,6 +1,6 @@
 // input row with TextInput and Send button
 
-import { useTheme } from "@/context/AppContext";
+import { useTheme } from "@/context";
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { Platform, Pressable, TextInput, View } from "react-native";

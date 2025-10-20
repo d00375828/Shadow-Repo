@@ -1,15 +1,15 @@
 // app/_layout.tsx
-import React from "react";
 import { Stack } from "expo-router";
+import React from "react";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { AppProvider } from "../context/AppContext";
+import { RootProvider } from "../context";
 
 export default function RootLayout() {
   return (
     <SafeAreaProvider>
-      <AppProvider>
+      <RootProvider>
         <Stack screenOptions={{ headerShown: false }} />
-      </AppProvider>
+      </RootProvider>
     </SafeAreaProvider>
   );
 }
