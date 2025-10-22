@@ -151,7 +151,12 @@ export default function SettingsHub() {
 
       {/* Manager (always visible in testing) */}
       <View style={{ height: 12 }} />
-      <SectionTitle color={colors.fg}>Manager</SectionTitle>
+      <SectionTitle
+        color={colors.fg}
+        style={{ marginTop: 12, marginBottom: 12 }}
+      >
+        Manager
+      </SectionTitle>
 
       <NavCard
         title="Manager (in-app)"

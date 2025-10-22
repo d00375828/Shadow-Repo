@@ -1,14 +1,21 @@
-import React, { createContext, useContext } from "react";
+// theme.tsx
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 
 export const DARK_COLORS = {
-  bg: "#0E0E0E", // main background
-  box: "#111418", // surface / card background
-  fg: "#FFFFFF", // primary text
-  muted: "#A0A3A7", // secondary text
-  accent: "#00E6C3", // brand teal
-  onAccent: "#000000", // text on accent
-  border: "#2A2D30", // outlines
-  header: "#1B1E21", // header background
+  bg: "#0E0E0E",
+  fg: "#FFFFFF",
+  muted: "#A0A3A7",
+  accent: "#00E6C3",
+  onAccent: "#000000",
+  box: "#111418",
+  border: "#2A2D30",
 };
 
 // Old Colors
@@ -21,19 +28,61 @@ export const DARK_COLORS = {
 //box: "#111",
 //border: "#615f5f",
 
+type Palette = typeof DARK_COLORS;
+type Overrides = Partial<Palette>;
+
+const THEME_KEY = "themeOverrides";
+
 const ThemeCtx = createContext<{
-  colors: typeof DARK_COLORS;
+  colors: Palette;
   isDark: true;
-  toggleTheme: () => void;
+
+  // new: override controls
+  setOverrides: (o: Overrides) => Promise<void>;
+  clearOverrides: () => Promise<void>;
 } | null>(null);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
+  const [overrides, setOverrides] = useState<Overrides | null>(null);
+  const [loaded, setLoaded] = useState(false);
+
+  // Load persisted overrides on boot
+  useEffect(() => {
+    (async () => {
+      try {
+        const raw = await AsyncStorage.getItem(THEME_KEY);
+        if (raw) setOverrides(JSON.parse(raw));
+      } finally {
+        setLoaded(true);
+      }
+    })();
+  }, []);
+
+  const colors: Palette = useMemo(
+    () => ({ ...DARK_COLORS, ...(overrides ?? {}) }),
+    [overrides]
+  );
+
+  const setAndPersist = async (o: Overrides) => {
+    setOverrides(o);
+    await AsyncStorage.setItem(THEME_KEY, JSON.stringify(o));
+  };
+
+  const clear = async () => {
+    setOverrides(null);
+    await AsyncStorage.removeItem(THEME_KEY);
+  };
+
+  // Render only after initial load to avoid a flash of default→overrides
+  if (!loaded) return null;
+
   return (
     <ThemeCtx.Provider
       value={{
-        colors: DARK_COLORS,
+        colors,
         isDark: true as const,
-        toggleTheme: () => {},
+        setOverrides: setAndPersist,
+        clearOverrides: clear,
       }}
     >
       {children}

@@ -302,7 +302,7 @@ export default function Insights() {
       {/* Just commented out the whole recent trends code for the demo since it wasn't populating. Just remove beginning and ending comment signilars */}
 
       {/* Recent Trends */}
-      {/* <Card
+      <Card
         bg={colors.box}
         style={{
           gap: 12,
@@ -313,7 +313,7 @@ export default function Insights() {
       >
         <SectionTitle color={colors.fg}>Recent Trends</SectionTitle>
 
-        {/* Improving 
+        {/* Improving */}
         <View
           style={{
             backgroundColor: "#0e0e0e",
@@ -339,7 +339,7 @@ export default function Insights() {
           )}
         </View>
 
-        {/* Consistent 
+        {/* Consistent */}
         <View
           style={{
             backgroundColor: "#0e0e0e",
@@ -370,7 +370,7 @@ export default function Insights() {
           )}
         </View>
 
-        {/* Watch 
+        {/* Watch */}
         <View
           style={{
             backgroundColor: "#0e0e0e",
@@ -396,7 +396,7 @@ export default function Insights() {
             </Text>
           )}
         </View>
-      </Card> */}
+      </Card>
     </Screen>
   );
 }
