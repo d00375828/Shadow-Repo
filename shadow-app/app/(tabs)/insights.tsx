@@ -4,6 +4,7 @@ import { ORDERED_METRIC_LABELS } from "@/lib/audio/grade";
 import React, { useMemo } from "react";
 import { Text, View } from "react-native";
 import Card from "../../components/Card";
+import PageHeader from "../../components/PageHeader";
 import RadarChart from "../../components/RadarChart";
 import Screen from "../../components/Screen";
 import SectionTitle from "../../components/SectionTitle";
@@ -129,18 +130,7 @@ export default function Insights() {
 
   return (
     <Screen style={{ padding: 16, backgroundColor: colors.bg }}>
-      {/* Header */}
-      <Text
-        style={{
-          color: colors.fg,
-          fontSize: 24,
-          fontWeight: "800",
-          marginBottom: 16,
-        }}
-      >
-        Performance
-      </Text>
-
+      <PageHeader title="Insights" />
       {/* Overall Pitch Grade */}
       <Card
         bg={colors.box}
@@ -244,9 +234,9 @@ export default function Insights() {
                 youPctNum >= 80
                   ? colors.accent
                   : youPctNum >= 60
-                  ? "#9BE870"
-                  : youPctNum >= 40
                   ? "#E5C94D"
+                  : youPctNum >= 40
+                  ? "#E86A6A"
                   : "#E86A6A";
               return (
                 <View

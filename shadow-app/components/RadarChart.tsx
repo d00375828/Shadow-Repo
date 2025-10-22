@@ -1,4 +1,6 @@
-// Used to make the attributes chart in the Insights screen
+// components/RadarChart.tsx
+// Themed radar chart for Insights
+import { useTheme } from "@/context";
 import React, { useEffect, useMemo, useRef } from "react";
 import { Animated } from "react-native";
 import Svg, {
@@ -58,40 +60,72 @@ type Props = {
   legendTextColor?: string;
 };
 
+function hexToRgba(hex: string, alpha = 1) {
+  const h = hex.replace("#", "");
+  const parse = (s: string) => parseInt(s, 16);
+  const [r, g, b] =
+    h.length === 3
+      ? [parse(h[0] + h[0]), parse(h[1] + h[1]), parse(h[2] + h[2])]
+      : [parse(h.slice(0, 2)), parse(h.slice(2, 4)), parse(h.slice(4, 6))];
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
 export default function RadarChart({
   size = 280,
   levels = 4,
   labels,
   values,
   series,
-  gridColor = "#333",
+  // themed defaults (fallbacks only; can still be overridden via props)
+  gridColor,
   gridDash = [1, 5],
   axisCapRadius = 2.5,
-  labelColor = "#aaa",
+  labelColor,
   labelFontSize = 11,
   labelRadius = 0.88,
   showRingPercents = true,
-  ringLabelColor = "#6e6e6e",
+  ringLabelColor,
   ringLabelAxis = "top",
   showPoints = false,
   pointRadius = 5,
-  pointStroke = "#000",
+  pointStroke,
   pointStrokeWidth = 1.6,
   showValueLabels = false,
-  valueLabelColor = "#ddd",
+  valueLabelColor,
   valueLabelFontSize = 11,
   animate = true,
   animationDuration = 300,
   showLegend = true,
-  legendTextColor = "#bbb",
-  // NEW:
+  legendTextColor,
   outerMargin = 24,
   labelWrap = true,
   labelMaxCharsPerLine = 10,
   labelMaxLines = 2,
-  labelLineHeight = Math.round(1.25 * 11), // ~1.25 * default font
+  labelLineHeight = Math.round(1.25 * 11),
 }: Props) {
-  const palette = ["#4cff00", "#6ba5ff", "#ffb74d", "#e57373", "#b39ddb"];
+  const { colors } = useTheme();
+
+  // Theme-driven defaults
+  const THEME = {
+    grid: gridColor ?? colors.border,
+    labels: labelColor ?? colors.muted,
+    ring: ringLabelColor ?? colors.muted,
+    values: valueLabelColor ?? colors.muted,
+    legendText: legendTextColor ?? colors.muted,
+    pointStroke: pointStroke ?? colors.bg,
+    accent: colors.accent,
+    accentFill: hexToRgba(colors.accent, 0.18),
+    legendBg: hexToRgba(colors.fg, 0.03), // subtle translucent
+  };
+
+  const fallbackPalette = [
+    colors.accent,
+    "#6ba5ff",
+    "#ffb74d",
+    "#e57373",
+    "#b39ddb",
+  ];
+
   const seriesData: Series[] = useMemo(() => {
     if (series?.length) return series;
     if (values && values.length) {
@@ -99,14 +133,14 @@ export default function RadarChart({
         {
           values,
           name: "You",
-          stroke: palette[0],
-          fill: "rgba(76,255,0,0.18)",
-          pointFill: palette[0],
+          stroke: THEME.accent,
+          fill: THEME.accentFill,
+          pointFill: THEME.accent,
         },
       ];
     }
     return [];
-  }, [values, series]);
+  }, [values, series, THEME.accent, THEME.accentFill]);
 
   const n = labels.length;
   if (!n || n < 3 || seriesData.some((s) => s.values.length !== n)) return null;
@@ -151,7 +185,8 @@ export default function RadarChart({
   const seriesPolys = seriesData.map((s, si) => {
     const pts = s.values.map((v, i) => pointAt(v, i));
     const path = pts.map((p) => `${p.x},${p.y}`).join(" ");
-    return { s, pts, path, color: s.stroke ?? palette[si % palette.length] };
+    const color = s.stroke ?? fallbackPalette[si % fallbackPalette.length];
+    return { s, pts, path, color };
   });
 
   // --- Simple word wrap helper for SVG labels ---
@@ -200,7 +235,7 @@ export default function RadarChart({
             cx={cx}
             cy={cy}
             r={r}
-            stroke={gridColor}
+            stroke={THEME.grid}
             strokeWidth={1}
             strokeDasharray={gridDash as any}
             fill="none"
@@ -216,27 +251,25 @@ export default function RadarChart({
             y1={cy}
             x2={p.x}
             y2={p.y}
-            stroke={gridColor}
+            stroke={THEME.grid}
             strokeWidth={1}
           />
-          <Circle cx={p.x} cy={p.y} r={axisCapRadius} fill={gridColor} />
+          <Circle cx={p.x} cy={p.y} r={axisCapRadius} fill={THEME.grid} />
         </G>
       ))}
 
-      {/* ring % labels along chosen axis — with values increasing OUTWARD */}
+      {/* ring % labels */}
       {showRingPercents &&
         Array.from({ length: levels }, (_, li) => {
-          const ratio = (li + 1) / levels; // 25, 50, 75, 100 for levels=4
+          const ratio = (li + 1) / levels;
           const pr = pointAt(ratio, ringAxisIndex);
           const pct = Math.round(ratio * 100);
-          const lx = pr.x; // centered on axis
-          const ly = pr.y - 6; // nudge upward a hair
           return (
             <SvgText
               key={`rl-${li}`}
-              x={lx}
-              y={ly}
-              fill={ringLabelColor}
+              x={pr.x}
+              y={pr.y - 6}
+              fill={THEME.ring}
               fontSize={10}
               alignmentBaseline="bottom"
               textAnchor="middle"
@@ -246,13 +279,12 @@ export default function RadarChart({
           );
         })}
 
-      {/* axis labels (wrapped & kept inside rim) */}
+      {/* axis labels */}
       {labels.map((lab, i) => {
         const a = angle(i);
         const lp = pointAt(labelRadius, i);
         const cos = Math.cos(a);
         const sin = Math.sin(a);
-
         const anchor = cos > 0.15 ? "start" : cos < -0.15 ? "end" : "middle";
         const dx = cos > 0 ? 4 : cos < 0 ? -4 : 0;
         const dyBase = sin > 0 ? 2 : sin < 0 ? -2 : 0;
@@ -266,7 +298,7 @@ export default function RadarChart({
             key={`lab-${i}`}
             x={lp.x + dx}
             y={lp.y + dyBase}
-            fill={labelColor}
+            fill={THEME.labels}
             fontSize={labelFontSize}
             alignmentBaseline="middle"
             textAnchor={anchor as any}
@@ -294,17 +326,17 @@ export default function RadarChart({
           <G key={`poly-${idx}`}>
             <Polygon
               points={path}
-              fill={s.fill ?? "rgba(255,255,255,0.08)"}
+              fill={s.fill ?? hexToRgba(color, 0.18)}
               stroke="transparent"
             />
             <Polygon
               points={path}
-              fill={s.fill ?? "rgba(255,255,255,0.08)"}
+              fill={s.fill ?? hexToRgba(color, 0.18)}
               stroke={color}
               strokeWidth={2}
             />
 
-            {/* Dots & value labels are optional; defaults are OFF */}
+            {/* Optional dots */}
             {showPoints &&
               pts.map((p, i) => (
                 <Circle
@@ -313,18 +345,19 @@ export default function RadarChart({
                   cy={p.y}
                   r={pointRadius}
                   fill={s.pointFill ?? color}
-                  stroke={pointStroke}
+                  stroke={THEME.pointStroke}
                   strokeWidth={pointStrokeWidth}
                 />
               ))}
 
+            {/* Optional value labels */}
             {showValueLabels &&
               pts.map((p, i) => (
                 <SvgText
                   key={`vl-${idx}-${i}`}
                   x={p.x + Math.cos(p.a) * 10}
                   y={p.y + Math.sin(p.a) * 10}
-                  fill={valueLabelColor}
+                  fill={THEME.values}
                   fontSize={valueLabelFontSize}
                   alignmentBaseline="middle"
                   textAnchor={
@@ -351,7 +384,7 @@ export default function RadarChart({
             width={canvasSize - outerMargin * 2}
             height={18}
             rx={6}
-            fill="rgba(255,255,255,0.03)"
+            fill={THEME.legendBg}
           />
           {seriesPolys.map(({ s, color }, i) => (
             <G
@@ -372,7 +405,7 @@ export default function RadarChart({
               <SvgText
                 x={18}
                 y={0}
-                fill={legendTextColor}
+                fill={THEME.legendText}
                 fontSize={11}
                 alignmentBaseline="middle"
               >

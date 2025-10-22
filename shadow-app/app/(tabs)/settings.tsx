@@ -1,11 +1,14 @@
 // app/(tabs)/settings.tsx
 import { Ionicons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as Linking from "expo-linking";
 import { router } from "expo-router";
+import * as WebBrowser from "expo-web-browser";
 import React, { useState } from "react";
-import { Alert, Pressable, Text, View } from "react-native";
+import { Alert, Pressable, Text, TextInput, View } from "react-native";
 
 import PageHeader from "@/components/PageHeader";
-import { useAuth, useTheme } from "@/context";
+import { useAuth, useProfile, useTheme } from "@/context";
 import Card from "../../components/Card";
 import SafeModal from "../../components/SafeModal";
 import Screen from "../../components/Screen";
@@ -13,6 +16,8 @@ import SectionTitle from "../../components/SectionTitle";
 
 const LEADING_ICON_SIZE = 26;
 const CHEVRON_ICON_SIZE = 22;
+const API_URL = "https://api.shadow.example";
+const UNLOCK_KEY = "managerUnlocked";
 
 function NavCard({
   title,
@@ -66,24 +71,53 @@ function NavCard({
 
 export default function SettingsHub() {
   const { colors } = useTheme();
-  const { signOut } = useAuth();
+  const { signOut, sessionToken } = useAuth() as any;
+  const { profile } = useProfile();
+
   const [showHelp, setShowHelp] = useState(false);
+
+  // --- Manager code modal state ---
+  const [showCodeModal, setShowCodeModal] = useState(false);
+  const [code, setCode] = useState("");
 
   function doSignOut() {
     Alert.alert("Sign out?", "You’ll need to sign in again to continue.", [
       { text: "Cancel", style: "cancel" },
-      {
-        text: "Sign Out",
-        style: "destructive",
-        onPress: () => {
-          signOut();
-        },
-      },
+      { text: "Sign Out", style: "destructive", onPress: () => signOut() },
     ]);
   }
 
+  const openWebConsole = async () => {
+    try {
+      const redirect = Linking.createURL("/manager");
+      const res = await fetch(
+        `${API_URL}/console/link?redirect=${encodeURIComponent(redirect)}`,
+        { headers: { Authorization: `Bearer ${sessionToken}` } }
+      );
+      const { url } = await res.json();
+      await WebBrowser.openAuthSessionAsync(url, redirect);
+    } catch (e: any) {
+      Alert.alert("Unable to open console", String(e?.message || e));
+    }
+  };
+
+  const tryUnlockAndOpenManager = async () => {
+    // Always show the code prompt for now (testing mode)
+    setShowCodeModal(true);
+  };
+
+  const handleSubmitCode = async () => {
+    if (code.trim() === "0000") {
+      await AsyncStorage.setItem(UNLOCK_KEY, "true");
+      setShowCodeModal(false);
+      setCode("");
+      router.replace("/manager");
+    } else {
+      Alert.alert("Invalid code", "Please try again.");
+    }
+  };
+
   return (
-    // NOTE: flexGrow: 1 lets the content fill the height so the footer can sit at the bottom
     <Screen style={{ padding: 16, backgroundColor: colors.bg, flexGrow: 1 }}>
       <PageHeader title="Settings" />
 
@@ -115,10 +149,26 @@ export default function SettingsHub() {
         onPress={() => setShowHelp(true)}
       />
 
-      {/* Spacer pushes the footer button to the bottom */}
+      {/* Manager (always visible in testing) */}
+      <View style={{ height: 12 }} />
+      <SectionTitle color={colors.fg}>Manager</SectionTitle>
+
+      <NavCard
+        title="Manager (in-app)"
+        subtitle="Open the Manager Console inside the app"
+        icon="speedometer-outline"
+        onPress={tryUnlockAndOpenManager}
+      />
+
+      <NavCard
+        title="Manager Web Console"
+        subtitle="Bulk uploads, dataset curation, exports"
+        icon="open-outline"
+        onPress={openWebConsole}
+      />
+
       <View style={{ flexGrow: 1 }} />
 
-      {/* Footer: Sign Out at bottom */}
       <Pressable
         onPress={doSignOut}
         style={{
@@ -142,22 +192,49 @@ export default function SettingsHub() {
           <Text style={{ color: colors.muted }}>Email: support@shadow.com</Text>
           <Text style={{ color: colors.muted }}>Phone: 1-800-SHADOW1</Text>
           <Text style={{ color: colors.muted }}>Hours: 24/7 Support</Text>
+        </View>
+      </SafeModal>
 
-          <SectionTitle color={colors.fg} style={{ marginTop: 8 }}>
-            Frequently Asked Questions
-          </SectionTitle>
-          <Text style={{ color: colors.fg, fontWeight: "700" }}>
-            How do I reset my password?
-          </Text>
-          <Text style={{ color: colors.muted, marginBottom: 8 }}>
-            Contact your organization administrator.
-          </Text>
-          <Text style={{ color: colors.fg, fontWeight: "700" }}>
-            What if I forgot my organization code?
-          </Text>
+      {/* Code Prompt Modal */}
+      <SafeModal
+        visible={showCodeModal}
+        onClose={() => setShowCodeModal(false)}
+        title="Enter Manager Code"
+      >
+        <View style={{ gap: 12 }}>
           <Text style={{ color: colors.muted }}>
-            Check with your manager or HR department.
+            Enter the 4-digit manager access code.
           </Text>
+          <TextInput
+            value={code}
+            onChangeText={setCode}
+            keyboardType="number-pad"
+            maxLength={4}
+            placeholder="0000"
+            placeholderTextColor={colors.border}
+            autoFocus
+            style={{
+              borderWidth: 1,
+              borderColor: colors.border,
+              borderRadius: 10,
+              paddingHorizontal: 12,
+              paddingVertical: 10,
+              color: colors.fg,
+            }}
+          />
+          <Pressable
+            onPress={handleSubmitCode}
+            style={{
+              backgroundColor: colors.accent,
+              borderRadius: 10,
+              paddingVertical: 12,
+              alignItems: "center",
+            }}
+          >
+            <Text style={{ color: colors.onAccent, fontWeight: "800" }}>
+              Unlock
+            </Text>
+          </Pressable>
         </View>
       </SafeModal>
     </Screen>
