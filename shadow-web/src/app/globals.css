@@ -1,0 +1,5 @@
+html, body { height: 100%; }
+* { box-sizing: border-box; }
+:root { --bg:#0f1420; --card:#151b2b; --ink:#e6e9ef; --muted:#aeb8d7; --stroke:#232b3d; }
+body { margin:0; background:var(--bg); color:var(--ink);
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; }
