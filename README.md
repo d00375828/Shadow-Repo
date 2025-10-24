@@ -4,7 +4,7 @@ Shadow is an AI-powered training app designed to help sales reps improve their c
 
 ---
 
-## Human Interface Guidelines (HIG) Implementation
+##  HIG Implementation
 
 Each screen uses a clear hierarchy, logical grouping, and familiar navigation patterns to help users understand the app’s flow without needing instructions. Buttons and controls use rounded corners, consistent padding, and high-contrast colors to indicate interactivity while maintaining accessibility and readability. The theming emphasizes simplicity and legibility, ensuring that important information stands out without clutter or distraction.
 
