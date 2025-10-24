@@ -6,7 +6,8 @@ import { router } from "expo-router";
 import React from "react";
 import { Alert, Linking, Pressable, Switch, Text, View } from "react-native";
 
-import { usePrivacy, useTheme } from "@/context";
+import { useTheme } from "@/context";
+import { usePrivacyPrefs } from "@/hooks/usePrivacyPrefs";
 import Card from "../../components/Card";
 import PageHeader from "../../components/PageHeader";
 import Screen from "../../components/Screen";
@@ -14,7 +15,7 @@ import SectionTitle from "../../components/SectionTitle";
 
 export default function PrivacySettings() {
   const { colors } = useTheme();
-  const { privacyPrefs, setPrivacyPrefs } = usePrivacy();
+  const { privacyPrefs, setPrivacyPrefs } = usePrivacyPrefs();
 
   async function toggleLocation(v: boolean) {
     if (v) {

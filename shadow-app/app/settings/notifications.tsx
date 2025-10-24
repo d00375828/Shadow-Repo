@@ -4,7 +4,8 @@ import { router } from "expo-router";
 import React from "react";
 import { Pressable, Switch, Text, View } from "react-native";
 
-import { useNotifications, useTheme } from "@/context";
+import { useTheme } from "@/context";
+import { useNotificationPrefs } from "@/hooks/useNotificationPrefs";
 import Card from "../../components/Card";
 import PageHeader from "../../components/PageHeader";
 import Screen from "../../components/Screen";
@@ -12,7 +13,7 @@ import SectionTitle from "../../components/SectionTitle";
 
 export default function NotificationsSettings() {
   const { colors } = useTheme();
-  const { notifPrefs, setNotifPrefs } = useNotifications();
+  const { notifPrefs, setNotifPrefs } = useNotificationPrefs();
 
   return (
     <Screen style={{ padding: 16, backgroundColor: colors.bg }}>
