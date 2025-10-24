@@ -73,26 +73,51 @@ export function RecordingsProvider({
   const [criteria, setCriteria] = useState<Criteria>(defaultCriteria);
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [avgScore, setAvgScore] = useState<number>(NaN);
+  const [hydrated, setHydrated] = useState(false);
 
   // hydrate
   useEffect(() => {
+    let isMounted = true;
     (async () => {
-      setCriteria(await getJson(KEYS.criteria, defaultCriteria));
-      setHistory(await getJson(KEYS.history, []));
-      setAvgScore(Number(await getStr(KEYS.avgScore, "NaN")));
+      const [storedCriteria, storedHistory, storedAvgScore] = await Promise.all(
+        [
+          getJson(KEYS.criteria, defaultCriteria),
+          getJson(KEYS.history, []),
+          getStr(KEYS.avgScore, "NaN"),
+        ]
+      );
+
+      // 🔎 Debug: see how many items we have on launch
+      try {
+        const count = Array.isArray(storedHistory) ? storedHistory.length : 0;
+        console.log("[RecordingsProvider] HISTORY COUNT ON LAUNCH:", count);
+      } catch {}
+
+      if (!isMounted) return;
+
+      setCriteria(storedCriteria);
+      setHistory(storedHistory);
+      setAvgScore(Number(storedAvgScore));
+      setHydrated(true);
     })();
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   // persist
   useEffect(() => {
+    if (!hydrated) return;
     setJson(KEYS.criteria, criteria);
-  }, [criteria]);
+  }, [criteria, hydrated]);
   useEffect(() => {
+    if (!hydrated) return;
     setJson(KEYS.history, history);
-  }, [history]);
+  }, [history, hydrated]);
   useEffect(() => {
+    if (!hydrated) return;
     setStr(KEYS.avgScore, String(avgScore));
-  }, [avgScore]);
+  }, [avgScore, hydrated]);
 
   function updateCriteria(c: Criteria) {
     setCriteria(c);
