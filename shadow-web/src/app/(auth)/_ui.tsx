@@ -1,5 +1,6 @@
 "use client";
 import { View, Text, TextInput, Pressable, StyleSheet } from "react-native";
+import { theme } from "../../lib/theme"; // <- add this
 
 export function Page({ children }: { children: React.ReactNode }) {
   return <View style={s.page}>{children}</View>;
@@ -18,7 +19,11 @@ export function Label({ children }: { children: React.ReactNode }) {
 }
 export function Input(props: React.ComponentProps<typeof TextInput>) {
   return (
-    <TextInput placeholderTextColor="#7f8ab1" style={s.input} {...props} />
+    <TextInput
+      placeholderTextColor={theme.colors.muted}
+      style={s.input}
+      {...props}
+    />
   );
 }
 export function Button({
@@ -51,19 +56,21 @@ export function Hint({ children }: { children: React.ReactNode }) {
   return <Text style={s.hint}>{children}</Text>;
 }
 
+const c = theme.colors;
+
 const s = StyleSheet.create({
   page: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
     padding: 16,
-    backgroundColor: "#0f1420",
+    backgroundColor: c.bg,
   },
   card: {
     width: "100%",
     maxWidth: 420,
-    backgroundColor: "#151b2b",
-    borderColor: "#232b3d",
+    backgroundColor: c.box,
+    borderColor: c.border,
     borderWidth: 1,
     borderRadius: 16,
     padding: 20,
@@ -73,38 +80,39 @@ const s = StyleSheet.create({
     fontWeight: "800",
     marginBottom: 16,
     textAlign: "center",
-    color: "#e6e9ef",
+    color: c.fg,
   },
-  row: { gap: 8, marginBottom: 12 },
-  label: { fontSize: 13, color: "#e6e9ef", opacity: 0.9 },
+  row: { marginBottom: 12 },
+  label: { fontSize: 13, color: c.fg, opacity: 0.9 },
   input: {
-    borderColor: "#2a3550",
+    borderColor: c.border,
     borderWidth: 1,
     borderRadius: 10,
     paddingVertical: 12,
     paddingHorizontal: 14,
-    color: "#e6e9ef",
-    backgroundColor: "#0f1322",
+    color: c.fg,
+    backgroundColor: c.bg,
   },
   button: {
-    backgroundColor: "#1f2a44",
+    backgroundColor: c.accent,
     paddingVertical: 12,
     borderRadius: 10,
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "#323b56",
+    borderColor: c.accent,
     marginTop: 8,
   },
-  buttonText: { color: "#e6e9ef", fontWeight: "600" },
+  buttonText: { color: c.onAccent, fontWeight: "700" },
   ghost: {
     borderStyle: "dashed",
     borderWidth: 1,
-    borderColor: "#3a4566",
+    borderColor: c.border,
     paddingVertical: 10,
     borderRadius: 10,
     alignItems: "center",
     marginTop: 8,
+    backgroundColor: "transparent",
   },
-  ghostText: { color: "#aeb8d7" },
-  hint: { fontSize: 12, color: "#aeb8d7", textAlign: "center", marginTop: 8 },
+  ghostText: { color: c.muted },
+  hint: { fontSize: 12, color: c.muted, textAlign: "center", marginTop: 8 },
 });

@@ -6,17 +6,17 @@ import { useRouter } from "next/navigation";
 import { Text, View, StyleSheet } from "react-native";
 import { Page, Card, H1, Button, GhostButton } from "../(auth)/_ui";
 import { getAuthed } from "../(auth)/auth";
+import { theme } from "../../lib/theme";
 
 type PickedFile = { name: string; size: number; type: string; file: File };
 
-// Web-only style for the native <input type="file" />
 const fileInputStyle: React.CSSProperties = {
   width: "100%",
   padding: 10,
   borderRadius: 10,
-  border: "1px solid #2a3550",
-  background: "#0f1322",
-  color: "#e6e9ef",
+  border: `1px solid var(--border)`,
+  background: `var(--bg)`,
+  color: `var(--fg)`,
 };
 
 export default function UploadPage() {

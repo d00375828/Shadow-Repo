@@ -1,5 +1,23 @@
+:root {
+  --bg: #0E0E0E;
+  --fg: #FFFFFF;
+  --muted: #A0A3A7;
+  --accent: #00E6C3;
+  --onAccent: #000000;
+  --box: #111418;
+  --border: #2A2D30;
+}
+
 html, body { height: 100%; }
 * { box-sizing: border-box; }
-:root { --bg:#0f1420; --card:#151b2b; --ink:#e6e9ef; --muted:#aeb8d7; --stroke:#232b3d; }
-body { margin:0; background:var(--bg); color:var(--ink);
-  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+}
+
+input[type="file"]:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
