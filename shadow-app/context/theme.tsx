@@ -1,90 +1,53 @@
-// theme.tsx
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import React, {
-  createContext,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+// context/theme.tsx
+import React, { createContext, useContext, useEffect, useState } from "react";
+import { KEYS, getStr, setStr } from "./storage";
 
 export const DARK_COLORS = {
   bg: "#0E0E0E",
-  fg: "#FFFFFF",
+  fg: "#fff",
   muted: "#A0A3A7",
   accent: "#00E6C3",
-  onAccent: "#000000",
+  onAccent: "#000",
   box: "#111418",
   border: "#2A2D30",
 };
 
-// Old Colors
-//bg: "#000",
-//fg: "#fff",
-//muted: "#d1d1d1",
-//accent: "#4cff00",
-//peach: "#ffddba",
-//onAccent: "#000",
-//box: "#111",
-//border: "#615f5f",
-
-type Palette = typeof DARK_COLORS;
-type Overrides = Partial<Palette>;
-
-const THEME_KEY = "themeOverrides";
+export const LIGHT_COLORS = {
+  bg: "#F4F0E8",
+  fg: "#0A0A0A",
+  muted: "#666",
+  accent: "#00CDBE",
+  onAccent: "#000",
+  box: "#FFF",
+  border: "#E4DDD2",
+};
 
 const ThemeCtx = createContext<{
-  colors: Palette;
-  isDark: true;
-
-  // new: override controls
-  setOverrides: (o: Overrides) => Promise<void>;
-  clearOverrides: () => Promise<void>;
+  colors: typeof DARK_COLORS | typeof LIGHT_COLORS;
+  isDark: boolean;
+  toggleTheme: () => void;
 } | null>(null);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [overrides, setOverrides] = useState<Overrides | null>(null);
-  const [loaded, setLoaded] = useState(false);
+  const [isDark, setIsDark] = useState(true);
 
-  // Load persisted overrides on boot
   useEffect(() => {
     (async () => {
-      try {
-        const raw = await AsyncStorage.getItem(THEME_KEY);
-        if (raw) setOverrides(JSON.parse(raw));
-      } finally {
-        setLoaded(true);
-      }
+      const saved = await getStr(KEYS.themeMode, "dark");
+      setIsDark(saved === "dark");
     })();
   }, []);
 
-  const colors: Palette = useMemo(
-    () => ({ ...DARK_COLORS, ...(overrides ?? {}) }),
-    [overrides]
-  );
+  useEffect(() => {
+    setStr(KEYS.themeMode, isDark ? "dark" : "light");
+  }, [isDark]);
 
-  const setAndPersist = async (o: Overrides) => {
-    setOverrides(o);
-    await AsyncStorage.setItem(THEME_KEY, JSON.stringify(o));
-  };
+  const toggleTheme = () => setIsDark((p) => !p);
 
-  const clear = async () => {
-    setOverrides(null);
-    await AsyncStorage.removeItem(THEME_KEY);
-  };
-
-  // Render only after initial load to avoid a flash of default→overrides
-  if (!loaded) return null;
+  const colors = isDark ? DARK_COLORS : LIGHT_COLORS;
 
   return (
-    <ThemeCtx.Provider
-      value={{
-        colors,
-        isDark: true as const,
-        setOverrides: setAndPersist,
-        clearOverrides: clear,
-      }}
-    >
+    <ThemeCtx.Provider value={{ colors, isDark, toggleTheme }}>
       {children}
     </ThemeCtx.Provider>
   );

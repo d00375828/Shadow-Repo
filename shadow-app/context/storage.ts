@@ -8,6 +8,7 @@ export const KEYS = {
   notifPrefs: "notifPrefs",
   privacyPrefs: "privacyPrefs",
   isAuthed: "isAuthed",
+  themeMode: "themeMode",
 } as const;
 
 export async function getJson<T>(key: string, fallback: T): Promise<T> {

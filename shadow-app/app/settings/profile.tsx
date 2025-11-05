@@ -9,6 +9,7 @@ import {
   Linking,
   Pressable,
   ScrollView,
+  Switch,
   Text,
   TextInput,
   View,
@@ -21,7 +22,7 @@ import Screen from "../../components/Screen";
 import SectionTitle from "../../components/SectionTitle";
 
 export default function ProfileSettings() {
-  const { colors } = useTheme();
+  const { colors, isDark, toggleTheme } = useTheme();
   const { profile, setProfile } = useProfile();
 
   const [avatarUri, setAvatarUri] = useState(profile.avatarUri ?? "");
@@ -181,6 +182,33 @@ export default function ProfileSettings() {
           <Field label="Role" value={role} onChangeText={setRole} />
         </Card>
 
+        {/* Appearance (Light/Dark) */}
+        <Card
+          bg={colors.box}
+          style={{ borderColor: colors.border, borderWidth: 1, gap: 10 }}
+        >
+          <SectionTitle color={colors.fg}>Appearance</SectionTitle>
+
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+              paddingVertical: 8,
+            }}
+          >
+            <Text style={{ color: colors.fg, fontWeight: "600" }}>
+              Light Mode
+            </Text>
+            <Switch
+              value={!isDark}
+              onValueChange={toggleTheme}
+              trackColor={{ false: colors.border, true: "#D0E8D0" }}
+              thumbColor={!isDark ? colors.accent : "#777"}
+            />
+          </View>
+        </Card>
+
         {/* Security Card */}
         <Card
           bg={colors.box}
@@ -235,7 +263,7 @@ function Field({
   onChangeText: (t: string) => void;
   keyboardType?: "default" | "email-address" | "phone-pad";
 }) {
-  const { colors } = useTheme();
+  const { colors, isDark, toggleTheme } = useTheme();
   return (
     <View>
       <Text style={{ color: colors.muted, marginBottom: 6 }}>{label}</Text>
