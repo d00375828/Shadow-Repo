@@ -12,9 +12,14 @@ In Shadow, the large circular **Record** button on the Home screen uses a bold a
 
 When a user begins recording, the Record button expands and pulses to confirm that recording is active. Pressable elements provide subtle opacity changes when tapped, offering immediate visual feedback that an interaction was registered. The **Review Recording** modal slides smoothly up from the bottom of the screen, maintaining a sense of spatial continuity consistent with native iOS transitions. When system permissions—such as microphone or location access—are denied, the app presents a native **Alert dialog** that clearly explains the issue and offers an “Open Settings” option. Additionally, the combination of consistent icons, well-communicated actions, appropriate motion, and native feedback patterns ensures that the app not only looks polished but also behaves in a way users naturally expect from high-quality iOS applications.
 
-
 ---
 
+## HIG Implementation for API
+When the user records a pitch on the **Home screen** and submits it for grading, the app calls `sendRecordingForGrade` in the background while immediately confirming what’s happening through clear system feedback: the user sees an alert that grading is in progress, and another when the grade is ready, instead of being left waiting without context. That remote response is then stored via the `RecordingsProvider` so results load instantly and consistently the next time the user opens the app, matching HIG principles around continuity of experience and making past interactions easily recoverable without re-fetching or re-doing work.
+
+The **Chat screen** applies the same ideas to conversational AI calls. API requests made through `useChat` are reflected directly in the interface with the *“Assistant is thinking…”* bubble inline with the conversation, using a familiar iOS-style message indicator rather than a disconnected global spinner. This keeps system status closely tied to the user’s last action and avoids clutter, while errors from the chat or other calls are surfaced in-line in a short, specific message so the user understands what went wrong and what to do next. Across these flows, asynchronous work never blocks interaction: users can scroll, review content, or navigate away while network or AI tasks complete, aligning with HIG guidance to keep apps responsive and prevent operations from feeling heavy or brittle.
+
+---
 ## Wireframe using Figma
 # Record Page
 <img width="380" height="763" alt="RECORD_WIRE" src="https://github.com/user-attachments/assets/115ffef4-b57a-4ab3-b6a3-2736e3c25ad7" />
