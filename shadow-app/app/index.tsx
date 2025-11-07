@@ -1,23 +1,17 @@
 // Login screen
 
-import { useAuth, useTheme } from "@/context";
-import { router } from "expo-router";
-import { useState } from "react";
-import {
-  Modal,
-  Pressable,
-  Text,
-  TextInput,
-  View,
-  useWindowDimensions,
-} from "react-native";
-import useIsLandscape from "../hooks/useIsLandscape";
+import { Redirect } from "expo-router";
 
 const faqs = [
   { q: "Forgot password?", a: "Contact your admin to reset your credentials." },
   { q: "Need help?", a: "Email support@shadow.example or check the docs." },
 ];
-
+// Bypassing the login screen for TestFlight
+export default function Index() {
+  return <Redirect href="/(tabs)/home" />;
+}
+{
+  /* Login screen 
 export default function Login() {
   const { colors } = useTheme();
   const { signIn } = useAuth();
@@ -145,7 +139,7 @@ export default function Login() {
         onPress={() => setOpen(true)}
         style={{ position: "absolute", right: 16, bottom: 24 }}
       >
-        <Text style={{ color: colors.peach, fontSize: 28, fontWeight: "900" }}>
+        <Text style={{ color: colors.fg, fontSize: 28, fontWeight: "900" }}>
           ?
         </Text>
       </Pressable>
@@ -218,4 +212,6 @@ export default function Login() {
       </Modal>
     </View>
   );
+}
+  */
 }

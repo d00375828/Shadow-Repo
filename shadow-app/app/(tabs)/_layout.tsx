@@ -43,19 +43,21 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="training"
         options={{
-          title: "Training",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="book" color={color} size={size} />
-          ),
+          href: null,
+          //title: "Training",
+          //tabBarIcon: ({ color, size }) => (
+          // <Ionicons name="book" color={color} size={size} />
+          //),
         }}
       />
       <Tabs.Screen
         name="chat"
         options={{
-          title: "Chat",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="chatbox" color={color} size={size} />
-          ),
+          href: null,
+          //title: "Chat",
+          //tabBarIcon: ({ color, size }) => (
+          // <Ionicons name="chatbox" color={color} size={size} />
+          // ),
         }}
       />
       <Tabs.Screen

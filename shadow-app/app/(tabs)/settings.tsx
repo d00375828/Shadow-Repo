@@ -149,7 +149,7 @@ export default function SettingsHub() {
         onPress={() => setShowHelp(true)}
       />
 
-      {/* Manager (always visible in testing) */}
+      {/* Manager (always visible in testing) 
       <View style={{ height: 12 }} />
       <SectionTitle
         color={colors.fg}
@@ -184,7 +184,7 @@ export default function SettingsHub() {
         }}
       >
         <Text style={{ color: "#fff", fontWeight: "800" }}>Sign Out</Text>
-      </Pressable>
+      </Pressable> */}
 
       {/* Help Modal */}
       <SafeModal

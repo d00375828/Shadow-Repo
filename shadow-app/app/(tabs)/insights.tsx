@@ -225,7 +225,7 @@ export default function Insights() {
 
         {/* Attribute Breakdown */}
         <View style={{ width: "100%", marginTop: 8, paddingHorizontal: 8 }}>
-          <SectionTitle color={colors.fg}>Attribute Breakdown</SectionTitle>
+          <SectionTitle color={colors.fg}>Overall Breakdown</SectionTitle>
 
           <View style={{ width: "100%" }}>
             {labels.map((lab, i) => {
