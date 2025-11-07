@@ -173,7 +173,7 @@ export default function Insights() {
 
       <View style={{ height: 16 }} />
 
-      {/* Sales Personality */}
+      {/* Sales Personality 
       <Card
         bg={colors.box}
         style={{ gap: 8, borderColor: colors.border, borderWidth: 1 }}
@@ -200,6 +200,7 @@ export default function Insights() {
       </Card>
 
       <View style={{ height: 16 }} />
+      */}
 
       {/* Skills Radar + Breakdown */}
       <Card
