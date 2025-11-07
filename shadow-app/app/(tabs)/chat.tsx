@@ -36,7 +36,7 @@ export default function Chat() {
           inverted
           contentContainerStyle={{ paddingHorizontal: 12, paddingBottom: 8 }}
           renderItem={({ item }) => <MessageBubble item={item} />}
-          ListFooterComponent={
+          ListHeaderComponent={
             <>
               {sending ? (
                 <View style={{ alignSelf: "flex-start", marginVertical: 6 }}>
@@ -51,7 +51,7 @@ export default function Chat() {
                     }}
                   >
                     <Text style={{ color: colors.muted }}>
-                      Assistant is typing…
+                      Assistant is thinking…
                     </Text>
                   </View>
                 </View>

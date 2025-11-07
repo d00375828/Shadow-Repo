@@ -15,11 +15,10 @@ import {
 } from "react-native";
 
 import { useRecordings, useTheme } from "@/context";
-import { GradeResult } from "@/lib/audio/grade";
+import { sendRecordingForGrade } from "@/lib/audio/sendRecordingForGrade";
 import AudioPlayer from "../../components/AudioPlayer";
 import PageHeader from "../../components/PageHeader";
 import Screen from "../../components/Screen";
-import SendToServer from "../../components/SendToServer";
 import { useRecorder } from "../../hooks/useRecorder";
 
 export default function Home() {
@@ -40,7 +39,7 @@ export default function Home() {
   const [showReview, setShowReview] = useState(false);
   const [transcript, setTranscript] = useState("");
   const [notes, setNotes] = useState("");
-  const [aiResult, setAiResult] = useState<GradeResult | null>(null);
+  const [saving, setSaving] = useState(false);
 
   const clock = useMemo(() => {
     const m = Math.floor(seconds / 60)
@@ -64,23 +63,44 @@ export default function Home() {
   }
 
   async function onSave() {
+    if (saving) return;
     if (!uri) return Alert.alert("No audio", "Record something first.");
+
+    const audioUri = uri;
+    const noteText = notes.trim();
+
     try {
-      await addRecording({
-        transcript: transcript.trim(),
-        notes: notes.trim(),
-        uri,
-        createdAt: Date.now(),
-        ai: aiResult?.ai, // store report
-      });
+      setSaving(true);
+      Alert.alert(
+        "Grading in progress",
+        "We're grading your recording now, and will notify you once it's ready!"
+      );
       setShowReview(false);
+
+      const gradeResult = await sendRecordingForGrade(audioUri);
+      setTranscript(gradeResult.transcript);
+
+      await addRecording({
+        transcript: gradeResult.transcript.trim(),
+        notes: noteText,
+        uri: audioUri,
+        createdAt: Date.now(),
+        ai: gradeResult.ai,
+      });
+
+      Alert.alert(
+        "Grade ready",
+        "Your recording has been graded. You can see it in View Recording."
+      );
+
       setTranscript("");
       setNotes("");
-      setAiResult(null);
       reset();
-      Alert.alert("Saved", "You can view your grade in history");
     } catch (e: any) {
       Alert.alert("Save failed", e?.message ?? String(e));
+      setShowReview(true);
+    } finally {
+      setSaving(false);
     }
   }
 
@@ -291,17 +311,6 @@ export default function Home() {
                 />
               </View>
 
-              {/* Send button (no visible server feedback) */}
-              {uri ? (
-                <SendToServer
-                  uri={uri}
-                  onResponseText={(t) => setTranscript(t)}
-                  onAiReport={(res) => setAiResult(res)}
-                  showResponse={false}
-                  showError={false}
-                />
-              ) : null}
-
               {/* Action bar */}
               <View
                 style={{
@@ -317,10 +326,11 @@ export default function Home() {
                   fg="#fff"
                 />
                 <ActionButton
-                  title="Save"
+                  title={saving ? "Saving..." : "Save"}
                   onPress={onSave}
                   color={colors.accent}
                   fg={colors.onAccent}
+                  disabled={saving}
                 />
               </View>
             </View>
@@ -338,16 +348,19 @@ function ActionButton({
   color,
   fg,
   style,
+  disabled = false,
 }: {
   title: string;
   onPress: () => void;
   color: string;
   fg: string;
   style?: any;
+  disabled?: boolean;
 }) {
   return (
     <Pressable
       onPress={onPress}
+      disabled={disabled}
       style={[
         {
           backgroundColor: color,
@@ -355,6 +368,7 @@ function ActionButton({
           paddingHorizontal: 16,
           borderRadius: 10,
           alignItems: "center",
+          opacity: disabled ? 0.6 : 1,
         },
         style,
       ]}

@@ -14,6 +14,7 @@ import {
 
 import PageHeader from "@/components/PageHeader";
 import { useRecordings, useTheme } from "@/context";
+import { ORDERED_METRIC_LABELS } from "@/lib/audio/grade";
 import AudioPlayer from "../../components/AudioPlayer";
 import Card from "../../components/Card";
 import Screen from "../../components/Screen";
@@ -37,6 +38,7 @@ export default function RecordingDetail() {
   // Collapsible states (default closed)
   const [showSummary, setShowSummary] = useState(false);
   const [showHighlights, setShowHighlights] = useState(false);
+  const [showAttributes, setShowAttributes] = useState(false);
   const [showDialogue, setShowDialogue] = useState(false);
 
   if (!rec) {
@@ -102,6 +104,23 @@ export default function RecordingDetail() {
     typeof r?.ai?.summary === "string" && r.ai.summary.trim().length
       ? r.ai.summary.trim()
       : "";
+  const orderedLabels = ORDERED_METRIC_LABELS as readonly string[];
+  const metrics =
+    r?.ai?.metrics && typeof r.ai.metrics === "object" ? r.ai.metrics : {};
+  const attributeEntries = [
+    ...ORDERED_METRIC_LABELS.map((label) => {
+      const raw = (metrics as Record<string, number>)?.[label];
+      return Number.isFinite(Number(raw))
+        ? { label, value: Number(raw) }
+        : null;
+    }).filter(Boolean),
+    ...Object.entries(metrics)
+      .filter(([label]) => !orderedLabels.includes(label))
+      .map(([label, value]) =>
+        Number.isFinite(Number(value)) ? { label, value: Number(value) } : null
+      )
+      .filter(Boolean),
+  ] as { label: string; value: number }[];
 
   // Optional meta: file size
   const fileSizeBytes: number | null =
@@ -339,6 +358,45 @@ ${(r.notes || "").trim() || "(none)"}
           ) : null}
         </Card>
 
+        {/* Attribute breakdown */}
+        <Card bg={colors.box} style={{ gap: 8, paddingVertical: 12 }}>
+          <Pressable
+            onPress={() => setShowAttributes((s) => !s)}
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+              paddingHorizontal: 4,
+              paddingBottom: 2,
+            }}
+          >
+            <SectionTitle color={colors.fg}>Attribute Breakdown</SectionTitle>
+            <Ionicons
+              name={showAttributes ? "chevron-up" : "chevron-down"}
+              size={18}
+              color={colors.muted}
+            />
+          </Pressable>
+
+          {showAttributes ? (
+            attributeEntries.length ? (
+              <View style={{ gap: 12 }}>
+                {attributeEntries.map((attr) => (
+                  <AttributeRow
+                    key={attr.label}
+                    label={attr.label}
+                    value={attr.value}
+                  />
+                ))}
+              </View>
+            ) : (
+              <Text style={{ color: colors.muted }}>
+                No attribute breakdown available.
+              </Text>
+            )
+          ) : null}
+        </Card>
+
         {/* Dialogue (collapsible) */}
         <Card bg={colors.box} style={{ gap: 8, paddingVertical: 12 }}>
           <Pressable
@@ -554,6 +612,56 @@ function ChipBlock({ title, items }: { title: string; items: string[] }) {
             <Text style={{ color: colors.muted, lineHeight: 20 }}>{t}</Text>
           </View>
         ))}
+      </View>
+    </View>
+  );
+}
+
+function AttributeRow({ label, value }: { label: string; value: number }) {
+  const { colors } = useTheme();
+  const capped = Math.max(0, Math.min(value > 10 ? 100 : 10, value));
+  const denom = value > 10 ? 100 : 10;
+  const percent = Math.min(1, Math.max(0, capped / denom));
+  const display = Number.isInteger(value) ? value : Number(value.toFixed(1));
+
+  return (
+    <View
+      style={{
+        backgroundColor: "#0e0e0e",
+        borderWidth: 1,
+        borderColor: colors.border,
+        borderRadius: 10,
+        padding: 12,
+        gap: 8,
+      }}
+    >
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+        }}
+      >
+        <Text style={{ color: colors.muted, fontWeight: "700" }}>{label}</Text>
+        <Text style={{ color: colors.muted, fontWeight: "800" }}>
+          {display}
+        </Text>
+      </View>
+      <View
+        style={{
+          height: 6,
+          borderRadius: 9999,
+          backgroundColor: "#1f1f1f",
+          overflow: "hidden",
+        }}
+      >
+        <View
+          style={{
+            width: `${percent * 100}%`,
+            height: "100%",
+            backgroundColor: colors.accent,
+          }}
+        />
       </View>
     </View>
   );
