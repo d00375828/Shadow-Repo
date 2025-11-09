@@ -7,6 +7,10 @@ import React from "react";
 import { Alert, Linking, Pressable, Switch, Text, View } from "react-native";
 
 import { useTheme } from "@/context";
+import {
+  IDLE_AUDIO_MODE,
+  RECORDING_AUDIO_MODE,
+} from "@/lib/audio/audioMode";
 import { usePrivacyPrefs } from "@/hooks/usePrivacyPrefs";
 import Card from "../../components/Card";
 import PageHeader from "../../components/PageHeader";
@@ -43,16 +47,10 @@ export default function PrivacySettings() {
         setPrivacyPrefs({ ...privacyPrefs, microphone: false });
         return;
       }
-      await setAudioModeAsync({
-        allowsRecording: true,
-        playsInSilentMode: true,
-      });
+      await setAudioModeAsync(RECORDING_AUDIO_MODE);
       setPrivacyPrefs({ ...privacyPrefs, microphone: true });
     } else {
-      await setAudioModeAsync({
-        allowsRecording: false,
-        playsInSilentMode: true,
-      });
+      await setAudioModeAsync(IDLE_AUDIO_MODE);
       setPrivacyPrefs({ ...privacyPrefs, microphone: false });
     }
   }

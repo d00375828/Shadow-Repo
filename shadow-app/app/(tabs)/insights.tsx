@@ -2,7 +2,7 @@
 import { useRecordings, useTheme } from "@/context";
 import { ORDERED_METRIC_LABELS } from "@/lib/audio/grade";
 import React, { useMemo } from "react";
-import { Text, View } from "react-native";
+import { Text, View, useWindowDimensions } from "react-native";
 import Card from "../../components/Card";
 import PageHeader from "../../components/PageHeader";
 import RadarChart from "../../components/RadarChart";
@@ -16,6 +16,7 @@ function metricOf(item: any, label: string): number {
 }
 
 export default function Insights() {
+  const { width } = useWindowDimensions();
   const { colors } = useTheme();
   const { history } = useRecordings();
   const items = Array.isArray(history) ? history : [];
@@ -128,6 +129,17 @@ export default function Insights() {
   const oneDecimal = (v10: number) =>
     `${(Math.round(v10 * 10) / 10).toFixed(1)}/10`;
 
+  const containerWidth = Math.max(260, Math.min(420, width - 32));
+  const chartOuterMargin = Math.min(
+    48,
+    Math.max(28, Math.round(containerWidth * 0.12))
+  );
+  const chartSize = Math.max(180, containerWidth - chartOuterMargin * 2);
+  const labelFontSize = width < 360 ? 10 : 12;
+  const labelLineHeight = width < 360 ? 12 : 16;
+  const labelMaxChars = width < 360 ? 8 : 12;
+  const labelMaxLines = width < 360 ? 3 : 2;
+
   return (
     <Screen style={{ padding: 16, backgroundColor: colors.bg }}>
       <PageHeader title="Insights" />
@@ -216,7 +228,18 @@ export default function Insights() {
         <SectionTitle color={colors.fg}>Skills Radar</SectionTitle>
 
         <View style={{ width: "100%", alignItems: "center", paddingTop: 8 }}>
-          <RadarChart labels={labels} values={values01} />
+          <RadarChart
+            labels={labels}
+            values={values01}
+            size={chartSize}
+            outerMargin={chartOuterMargin}
+            labelRadius={1.08}
+            labelFontSize={labelFontSize}
+            labelLineHeight={labelLineHeight}
+            labelMaxCharsPerLine={labelMaxChars}
+            labelMaxLines={labelMaxLines}
+            showRingPercents={false}
+          />
         </View>
 
         {/* Divider */}

@@ -7,6 +7,7 @@ import {
 } from "expo-audio";
 import { useEffect, useRef, useState } from "react";
 import { Alert, Animated, Linking } from "react-native";
+import { RECORDING_AUDIO_MODE } from "@/lib/audio/audioMode";
 
 export function useRecorder() {
   const recorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
@@ -31,10 +32,7 @@ export function useRecorder() {
       if (!status.granted) {
         Alert.alert("Microphone permission is required to record.");
       } else {
-        await setAudioModeAsync({
-          playsInSilentMode: true,
-          allowsRecording: true,
-        });
+        await setAudioModeAsync(RECORDING_AUDIO_MODE);
       }
     })();
     return () => {
@@ -106,7 +104,7 @@ export function useRecorder() {
     startTimer();
   
     try {
-      await setAudioModeAsync({ playsInSilentMode: true, allowsRecording: true });
+      await setAudioModeAsync(RECORDING_AUDIO_MODE);
       await recorder.prepareToRecordAsync();
       await recorder.record();
       if (token !== sessionRef.current) return; // user restarted quickly
