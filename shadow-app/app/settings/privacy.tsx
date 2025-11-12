@@ -7,10 +7,6 @@ import React from "react";
 import { Alert, Linking, Pressable, Switch, Text, View } from "react-native";
 
 import { useTheme } from "@/context";
-import {
-  IDLE_AUDIO_MODE,
-  RECORDING_AUDIO_MODE,
-} from "@/lib/audio/audioMode";
 import { usePrivacyPrefs } from "@/hooks/usePrivacyPrefs";
 import { IDLE_AUDIO_MODE, RECORDING_AUDIO_MODE } from "@/lib/audio/audioMode";
 import Card from "../../components/Card";
