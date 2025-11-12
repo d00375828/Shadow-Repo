@@ -12,6 +12,7 @@ import {
   RECORDING_AUDIO_MODE,
 } from "@/lib/audio/audioMode";
 import { usePrivacyPrefs } from "@/hooks/usePrivacyPrefs";
+import { IDLE_AUDIO_MODE, RECORDING_AUDIO_MODE } from "@/lib/audio/audioMode";
 import Card from "../../components/Card";
 import PageHeader from "../../components/PageHeader";
 import Screen from "../../components/Screen";
@@ -76,7 +77,7 @@ export default function PrivacySettings() {
         }
       />
 
-      {/* Active Listening */}
+      {/* Active Listening 
       <Card
         bg={colors.box}
         style={{ borderColor: colors.border, borderWidth: 1, gap: 8 }}
@@ -104,7 +105,7 @@ export default function PrivacySettings() {
         </Text>
       </Card>
 
-      <View style={{ height: 16 }} />
+      <View style={{ height: 16 }} /> */}
 
       {/* Data & Permissions */}
       <Card
@@ -133,7 +134,7 @@ export default function PrivacySettings() {
 
       <View style={{ height: 16 }} />
 
-      {/* Access & Sharing */}
+      {/* Access & Sharing 
       <Card
         bg={colors.box}
         style={{ borderColor: colors.border, borderWidth: 1, gap: 8 }}
@@ -166,11 +167,10 @@ export default function PrivacySettings() {
             />
           </View>
         ))}
-      </Card>
+      </Card>*/}
     </Screen>
   );
 }
-
 function Row({ children }: { children: React.ReactNode }) {
   return (
     <View
