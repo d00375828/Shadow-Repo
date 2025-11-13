@@ -1,4 +1,5 @@
 // hooks/useRecorder.ts
+import { RECORDING_AUDIO_MODE } from "@/lib/audio/audioMode";
 import {
   AudioModule,
   RecordingPresets,
@@ -7,7 +8,6 @@ import {
 } from "expo-audio";
 import { useEffect, useRef, useState } from "react";
 import { Alert, Animated, Linking } from "react-native";
-import { RECORDING_AUDIO_MODE } from "@/lib/audio/audioMode";
 
 export function useRecorder() {
   const recorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);

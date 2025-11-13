@@ -1,5 +1,6 @@
 // app/(tabs)/home.tsx
 import { Ionicons } from "@expo/vector-icons";
+import * as DocumentPicker from "expo-document-picker";
 import { router } from "expo-router";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -38,6 +39,7 @@ export default function Home() {
   const [transcript, setTranscript] = useState("");
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   const clock = useMemo(() => {
     const m = Math.floor(seconds / 60)
@@ -71,7 +73,7 @@ export default function Home() {
       setSaving(true);
       Alert.alert(
         "Grading in progress",
-        "We're grading your recording now, and will notify you once it's ready!"
+        "Your recording is being graded now, and will notify you once it's done!"
       );
       setShowReview(false);
 
@@ -88,7 +90,7 @@ export default function Home() {
 
       Alert.alert(
         "Grade ready",
-        "Your recording has been graded. You can see it in View Recording."
+        "Your recording has been graded. You can see it in View Recordings!"
       );
 
       setTranscript("");
@@ -99,6 +101,51 @@ export default function Home() {
       setShowReview(true);
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function onUploadRecording() {
+    if (uploading) return;
+
+    try {
+      const pick = await DocumentPicker.getDocumentAsync({
+        type: ["audio/m4a", "audio/mp4", "audio/*"],
+        copyToCacheDirectory: true,
+        multiple: false,
+      });
+
+      if (pick.canceled) return;
+
+      const file = pick.assets?.[0];
+
+      if (!file?.uri) {
+        throw new Error("Unable to access the selected file.");
+      }
+
+      setUploading(true);
+      Alert.alert(
+        "Grading in progress",
+        "We're grading your recording now, and will notify you once it's ready!"
+      );
+
+      const gradeResult = await sendRecordingForGrade(file.uri);
+
+      await addRecording({
+        transcript: gradeResult.transcript.trim(),
+        notes: "",
+        uri: file.uri,
+        createdAt: Date.now(),
+        ai: gradeResult.ai,
+      });
+
+      Alert.alert(
+        "Grade ready",
+        "Your recording has been graded. You can see it in View Recording."
+      );
+    } catch (e: any) {
+      Alert.alert("Upload failed", e?.message ?? String(e));
+    } finally {
+      setUploading(false);
     }
   }
 
@@ -200,6 +247,35 @@ export default function Home() {
             }}
           >
             View Recordings
+          </Text>
+        </Pressable>
+        <Pressable
+          onPress={onUploadRecording}
+          disabled={uploading}
+          style={{
+            marginTop: 12,
+            alignSelf: "stretch",
+            backgroundColor: colors.card,
+            borderColor: colors.border,
+            borderWidth: 1,
+            paddingVertical: 14,
+            borderRadius: 12,
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "center",
+            opacity: uploading ? 0.6 : 1,
+          }}
+        >
+          <Ionicons name={"cloud-upload-outline"} size={20} color={colors.fg} />
+          <Text
+            style={{
+              color: colors.fg,
+              fontWeight: "800",
+              fontSize: 16,
+              marginLeft: 8,
+            }}
+          >
+            Upload Recording
           </Text>
         </Pressable>
       </View>
