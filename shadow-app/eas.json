@@ -1,0 +1,21 @@
+{
+    "cli": { "version": ">= 14.0.0" },
+    "build": {
+      "production": {
+        "distribution": "store",
+        "ios": {
+          "resourceClass": "m1-medium"
+        },
+        "android": {
+          "buildType": "app-bundle"
+        }
+      }
+    },
+    "submit": {
+      "production": {
+        "android": {
+          "serviceAccountKeyPath": "./google-service-account.json"
+        }
+      }
+    }
+  }
