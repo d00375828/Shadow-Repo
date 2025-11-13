@@ -127,7 +127,7 @@ export default function ProfileSettings() {
               height: 112,
               width: 112,
               borderRadius: 9999,
-              backgroundColor: "#222",
+              backgroundColor: colors.bg,
               overflow: "hidden",
               alignItems: "center",
               justifyContent: "center",
@@ -161,10 +161,7 @@ export default function ProfileSettings() {
         </View>
 
         {/* Info Card */}
-        <Card
-          bg={colors.box}
-          style={{ borderColor: colors.border, borderWidth: 1, gap: 10 }}
-        >
+        <Card style={{ gap: 10 }}>
           <Field label="Name" value={name} onChangeText={setName} />
           <Field
             label="Email"
@@ -183,10 +180,7 @@ export default function ProfileSettings() {
         </Card>
 
         {/* Appearance (Light/Dark) */}
-        <Card
-          bg={colors.box}
-          style={{ borderColor: colors.border, borderWidth: 1, gap: 10 }}
-        >
+        <Card style={{ gap: 10 }}>
           <SectionTitle color={colors.fg}>Appearance</SectionTitle>
 
           <View
@@ -203,17 +197,14 @@ export default function ProfileSettings() {
             <Switch
               value={!isDark}
               onValueChange={toggleTheme}
-              trackColor={{ false: colors.border, true: "#D0E8D0" }}
-              thumbColor={!isDark ? colors.accent : "#777"}
+              trackColor={{ false: colors.border, true: colors.bg }}
+              thumbColor={!isDark ? colors.accent : colors.box}
             />
           </View>
         </Card>
 
         {/* Security Card */}
-        <Card
-          bg={colors.box}
-          style={{ borderColor: colors.border, borderWidth: 1, gap: 10 }}
-        >
+        <Card style={{ gap: 10 }}>
           <SectionTitle color={colors.fg}>Security</SectionTitle>
           <Pressable
             onPress={resetPassword}
@@ -222,7 +213,7 @@ export default function ProfileSettings() {
               paddingHorizontal: 12,
               paddingVertical: 8,
               borderRadius: 8,
-              backgroundColor: "#333",
+              backgroundColor: colors.border,
             }}
           >
             <Text style={{ color: colors.fg, fontWeight: "700" }}>

@@ -18,7 +18,7 @@ const MOCK_RECORDINGS = [
 function KPI({ label, value }: { label: string; value: string }) {
   const { colors } = useTheme();
   return (
-    <Card bg={colors.box} border={colors.border}>
+    <Card>
       <Text style={{ color: colors.muted, fontSize: 12 }}>{label}</Text>
       <Text style={{ color: colors.fg, fontSize: 20, fontWeight: "800" }}>
         {value}

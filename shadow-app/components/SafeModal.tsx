@@ -1,4 +1,5 @@
 // components/SafeModal.tsx
+import { useTheme } from "@/context";
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import {
@@ -16,9 +17,8 @@ type Props = {
   onClose: (e?: GestureResponderEvent) => void;
   title?: string;
   children: React.ReactNode;
-  // optional theme overrides
-  bg?: string; // content background
-  overlay?: string; // scrim color
+  bg?: string;
+  overlay?: string;
   borderColor?: string;
   textColor?: string;
 };
@@ -28,11 +28,20 @@ export default function SafeModal({
   onClose,
   title,
   children,
-  bg = "#111",
-  overlay = "rgba(0,0,0,0.5)",
-  borderColor = "#1b1b1b",
-  textColor = "#fff",
+  bg,
+  overlay,
+  borderColor,
+  textColor,
 }: Props) {
+  const { colors, isDark } = useTheme();
+
+  // Theme defaults with optional overrides
+  const overlayColor =
+    overlay ?? (isDark ? "rgba(0,0,0,0.6)" : "rgba(0,0,0,0.35)");
+  const cardBg = bg ?? colors.card; // uses your card color
+  const cardBorder = borderColor ?? colors.border;
+  const labelColor = textColor ?? colors.fg;
+
   return (
     <Modal
       visible={visible}
@@ -40,19 +49,24 @@ export default function SafeModal({
       animationType="slide"
       onRequestClose={onClose} // Android back
     >
-      <SafeAreaView style={[styles.overlay, { backgroundColor: overlay }]}>
+      <SafeAreaView style={[styles.overlay, { backgroundColor: overlayColor }]}>
         {/* Tap outside to close */}
         <Pressable style={styles.backdrop} onPress={onClose} />
 
         {/* Card */}
-        <View style={[styles.card, { backgroundColor: bg, borderColor }]}>
-          {/* Header (always render to show close button) */}
+        <View
+          style={[
+            styles.card,
+            { backgroundColor: cardBg, borderColor: cardBorder },
+          ]}
+        >
+          {/* Header */}
           <View style={styles.header}>
-            <Text style={[styles.title, { color: textColor }]}>
+            <Text style={[styles.title, { color: labelColor }]}>
               {title ?? ""}
             </Text>
             <Pressable onPress={onClose} hitSlop={10} style={styles.closeBtn}>
-              <Ionicons name="close" size={20} color={textColor} />
+              <Ionicons name="close" size={20} color={labelColor} />
             </Pressable>
           </View>
 
@@ -67,7 +81,7 @@ export default function SafeModal({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    justifyContent: "center", // was initially flex-end for bottom sheet
+    justifyContent: "center", // centered modal
   },
   backdrop: {
     position: "absolute",

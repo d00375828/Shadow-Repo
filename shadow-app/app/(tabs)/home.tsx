@@ -5,9 +5,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   Alert,
   Animated,
-  KeyboardAvoidingView,
   Modal,
-  Platform,
   Pressable,
   Text,
   TextInput,
@@ -182,7 +180,7 @@ export default function Home() {
           style={{
             marginTop: 30,
             alignSelf: "stretch",
-            backgroundColor: colors.box,
+            backgroundColor: colors.card,
             borderColor: colors.border,
             borderWidth: 1,
             paddingVertical: 14,
@@ -213,128 +211,123 @@ export default function Home() {
         onRequestClose={() => setShowReview(false)}
       >
         <Screen style={{ backgroundColor: colors.bg }}>
-          <KeyboardAvoidingView
-            behavior={Platform.select({ ios: "padding", android: undefined })}
-            style={{ flex: 1 }}
-          >
-            <View style={{ padding: 16, gap: 16, flex: 1 }}>
-              {/* Top bar */}
-              <View
+          <View style={{ padding: 16, gap: 16, flex: 1 }}>
+            {/* Top bar */}
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+              }}
+            >
+              <Text
                 style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  justifyContent: "space-between",
+                  color: colors.fg,
+                  fontSize: 25,
+                  fontWeight: "800",
+                  textAlign: "center",
+                  flex: 1,
+                  paddingBottom: 4,
                 }}
               >
-                <Text
-                  style={{
-                    color: colors.fg,
-                    fontSize: 25,
-                    fontWeight: "800",
-                    textAlign: "center",
-                    flex: 1,
-                    paddingBottom: 4,
-                  }}
-                >
-                  Recording Review
-                </Text>
-              </View>
-
-              {/* Player */}
-              {uri ? (
-                <View style={{ alignItems: "center" }}>
-                  <AudioPlayer
-                    uri={uri}
-                    bg={colors.accent}
-                    fg={colors.onAccent}
-                  />
-                </View>
-              ) : (
-                <Text style={{ color: colors.muted }}>No audio found.</Text>
-              )}
-
-              {/* Transcript */}
-              <View style={{ flex: 1 }}>
-                <Text
-                  style={{
-                    color: colors.fg,
-                    fontWeight: "700",
-                    marginBottom: 8,
-                  }}
-                >
-                  Transcript
-                </Text>
-                <TextInput
-                  multiline
-                  value={transcript}
-                  onChangeText={setTranscript}
-                  placeholder="This is where your transcript will appear."
-                  placeholderTextColor={colors.muted}
-                  style={{
-                    color: colors.fg,
-                    borderColor: colors.border,
-                    borderWidth: 1,
-                    borderRadius: 10,
-                    padding: 12,
-                    minHeight: 120,
-                    textAlignVertical: "top",
-                  }}
-                />
-              </View>
-
-              {/* Notes */}
-              <View style={{ flex: 1 }}>
-                <Text
-                  style={{
-                    color: colors.fg,
-                    fontWeight: "700",
-                    marginBottom: 8,
-                  }}
-                >
-                  Notes
-                </Text>
-                <TextInput
-                  multiline
-                  value={notes}
-                  onChangeText={setNotes}
-                  placeholder="What went well? What to improve?"
-                  placeholderTextColor={colors.muted}
-                  style={{
-                    color: colors.fg,
-                    borderColor: colors.border,
-                    borderWidth: 1,
-                    borderRadius: 10,
-                    padding: 12,
-                    minHeight: 100,
-                    textAlignVertical: "top",
-                  }}
-                />
-              </View>
-
-              {/* Action bar */}
-              <View
-                style={{
-                  flexDirection: "row",
-                  gap: 12,
-                  justifyContent: "space-between",
-                }}
-              >
-                <ActionButton
-                  title="Delete"
-                  onPress={onDelete}
-                  color="#111"
-                  fg="#fff"
-                />
-                <ActionButton
-                  title={saving ? "Saving..." : "Save"}
-                  onPress={onSave}
-                  color={colors.accent}
-                  fg={colors.onAccent}
-                  disabled={saving}
-                />
-              </View>
+                Recording Review
+              </Text>
             </View>
-          </KeyboardAvoidingView>
+
+            {/* Player */}
+            {uri ? (
+              <View style={{ alignItems: "center" }}>
+                <AudioPlayer
+                  uri={uri}
+                  bg={colors.accent}
+                  fg={colors.onAccent}
+                />
+              </View>
+            ) : (
+              <Text style={{ color: colors.muted }}>No audio found.</Text>
+            )}
+
+            {/* Transcript */}
+            <View>
+              <Text
+                style={{
+                  color: colors.fg,
+                  fontWeight: "700",
+                  marginBottom: 8,
+                }}
+              >
+                Transcript
+              </Text>
+              <TextInput
+                multiline
+                value={transcript}
+                onChangeText={setTranscript}
+                placeholder="This is where your transcript will appear."
+                placeholderTextColor={colors.muted}
+                style={{
+                  color: colors.fg,
+                  borderColor: colors.border,
+                  borderWidth: 1,
+                  borderRadius: 10,
+                  padding: 12,
+                  minHeight: 120,
+                  textAlignVertical: "top",
+                }}
+              />
+            </View>
+
+            {/* Notes */}
+            <View>
+              <Text
+                style={{
+                  color: colors.fg,
+                  fontWeight: "700",
+                  marginBottom: 8,
+                }}
+              >
+                Notes
+              </Text>
+              <TextInput
+                multiline
+                value={notes}
+                onChangeText={setNotes}
+                placeholder="What went well? What to improve?"
+                placeholderTextColor={colors.muted}
+                style={{
+                  color: colors.fg,
+                  borderColor: colors.border,
+                  borderWidth: 1,
+                  borderRadius: 10,
+                  padding: 12,
+                  minHeight: 100,
+                  textAlignVertical: "top",
+                }}
+              />
+            </View>
+
+            {/* Action bar */}
+            <View
+              style={{
+                flexDirection: "row",
+                gap: 12,
+                justifyContent: "space-between",
+              }}
+            >
+              <ActionButton
+                title="Delete"
+                onPress={onDelete}
+                color="#ed4f4e"
+                fg="#fff"
+              />
+              <ActionButton
+                title={saving ? "Saving..." : "Save"}
+                onPress={onSave}
+                color={colors.accent}
+                fg={colors.onAccent}
+                disabled={saving}
+              />
+            </View>
+          </View>
         </Screen>
       </Modal>
     </Screen>

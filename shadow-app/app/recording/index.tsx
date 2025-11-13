@@ -133,7 +133,7 @@ export default function RecordingsList() {
         )}
         renderItem={({ item }) => (
           <Pressable onPress={() => openDetail(item)}>
-            <Card bg={colors.box} style={{ gap: 8 }}>
+            <Card style={{ gap: 8 }}>
               <View
                 style={{
                   flexDirection: "row",

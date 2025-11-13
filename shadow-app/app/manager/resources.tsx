@@ -51,7 +51,7 @@ export default function Resources() {
   return (
     <Screen backgroundColor={colors.bg} style={{ padding: 16 }} scroll={false}>
       <PageHeader title="Resources" left={<BackButton />} />
-      <Card bg={colors.box} border={colors.border} style={{ gap: 12 }}>
+      <Card style={{ gap: 12 }}>
         <AppButton
           title="Quick add from this device"
           onPress={quickAdd}
