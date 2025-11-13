@@ -145,7 +145,6 @@ export default function Insights() {
       <PageHeader title="Insights" />
       {/* Overall Pitch Grade */}
       <Card
-        bg={colors.box}
         style={{
           gap: 10,
           borderColor: colors.border,
@@ -187,7 +186,6 @@ export default function Insights() {
 
       {/* Sales Personality 
       <Card
-        bg={colors.box}
         style={{ gap: 8, borderColor: colors.border, borderWidth: 1 }}
       >
         <SectionTitle color={colors.fg}>Sales Personality</SectionTitle>
@@ -216,7 +214,6 @@ export default function Insights() {
 
       {/* Skills Radar + Breakdown */}
       <Card
-        bg={colors.box}
         style={{
           gap: 12,
           borderColor: colors.border,
@@ -327,7 +324,6 @@ export default function Insights() {
 
       {/* Recent Trends 
       <Card
-        bg={colors.box}
         style={{
           gap: 12,
           borderColor: colors.border,

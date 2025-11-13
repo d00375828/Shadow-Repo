@@ -75,8 +75,7 @@ export default function PrivacySettings() {
 
       {/* Active Listening 
       <Card
-        bg={colors.box}
-        style={{ borderColor: colors.border, borderWidth: 1, gap: 8 }}
+        style={{ gap: 8 }}
       >
         <SectionTitle color={colors.fg}>Active Listening</SectionTitle>
 
@@ -104,10 +103,7 @@ export default function PrivacySettings() {
       <View style={{ height: 16 }} /> */}
 
       {/* Data & Permissions */}
-      <Card
-        bg={colors.box}
-        style={{ borderColor: colors.border, borderWidth: 1 }}
-      >
+      <Card>
         <SectionTitle color={colors.fg}>Data & Permissions</SectionTitle>
 
         <ToggleRow
@@ -132,8 +128,7 @@ export default function PrivacySettings() {
 
       {/* Access & Sharing 
       <Card
-        bg={colors.box}
-        style={{ borderColor: colors.border, borderWidth: 1, gap: 8 }}
+        style={{ gap: 8 }}
       >
         <SectionTitle color={colors.fg}>Access & Sharing</SectionTitle>
         {privacyPrefs.access.map((a, i) => (
@@ -211,8 +206,8 @@ function ToggleRow({
       <Switch
         value={value}
         onValueChange={onChange}
-        trackColor={{ false: colors.border, true: "#314d25" }}
-        thumbColor={value ? colors.accent : "#777"}
+        trackColor={{ false: colors.border, true: colors.bg }}
+        thumbColor={value ? colors.accent : colors.box}
       />
     </View>
   );

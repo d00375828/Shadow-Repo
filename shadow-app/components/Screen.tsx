@@ -12,11 +12,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 type Props = {
   children: React.ReactNode;
   backgroundColor?: string;
-  /** Applied to the content area (ScrollView content or View) */
   style?: ViewStyle | ViewStyle[];
-  /** Extra space at bottom (e.g., for home indicator) */
   bottomPadding?: number;
-  /** When false, render a plain View (no ScrollView). */
   scroll?: boolean;
 };
 
@@ -39,10 +36,11 @@ export default function Screen({
       >
         {scroll ? (
           <ScrollView
+            style={{ flex: 1, backgroundColor }}
             keyboardShouldPersistTaps="handled"
             contentInsetAdjustmentBehavior="always"
             contentContainerStyle={[
-              { paddingBottom: bottomPadding },
+              { paddingBottom: bottomPadding, flexGrow: 1 },
               style as any,
             ]}
           >
@@ -50,7 +48,10 @@ export default function Screen({
           </ScrollView>
         ) : (
           <View
-            style={[{ flex: 1, paddingBottom: bottomPadding }, style as any]}
+            style={[
+              { flex: 1, paddingBottom: bottomPadding, backgroundColor },
+              style as any,
+            ]}
           >
             {children}
           </View>

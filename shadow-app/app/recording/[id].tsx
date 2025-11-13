@@ -48,7 +48,7 @@ export default function RecordingDetail() {
         backgroundColor={colors.bg}
         style={{ padding: 16 }}
       >
-        <Card bg={colors.box} style={{ gap: 12 }}>
+        <Card style={{ gap: 12 }}>
           <Text style={{ color: colors.fg, fontSize: 18, fontWeight: "800" }}>
             Recording not found
           </Text>
@@ -216,7 +216,7 @@ ${(r.notes || "").trim() || "(none)"}
         </View>
 
         {/* Meta + Player (polished) */}
-        <Card bg={colors.box} style={{ gap: 12, paddingVertical: 16 }}>
+        <Card style={{ gap: 12, paddingVertical: 16 }}>
           {/* Score badge */}
           <View style={{ alignItems: "center" }}>
             <View
@@ -285,7 +285,7 @@ ${(r.notes || "").trim() || "(none)"}
         </Card>
 
         {/* Summary (collapsible) */}
-        <Card bg={colors.box} style={{ gap: 8, paddingVertical: 12 }}>
+        <Card style={{ gap: 8, paddingVertical: 12 }}>
           <Pressable
             onPress={() => setShowSummary((s) => !s)}
             style={{
@@ -318,7 +318,7 @@ ${(r.notes || "").trim() || "(none)"}
         </Card>
 
         {/* Highlights (collapsible as chips) */}
-        <Card bg={colors.box} style={{ gap: 8, paddingVertical: 12 }}>
+        <Card style={{ gap: 8, paddingVertical: 12 }}>
           <Pressable
             onPress={() => setShowHighlights((s) => !s)}
             style={{
@@ -359,7 +359,7 @@ ${(r.notes || "").trim() || "(none)"}
         </Card>
 
         {/* Attribute breakdown */}
-        <Card bg={colors.box} style={{ gap: 8, paddingVertical: 12 }}>
+        <Card style={{ gap: 8, paddingVertical: 12 }}>
           <Pressable
             onPress={() => setShowAttributes((s) => !s)}
             style={{
@@ -398,7 +398,7 @@ ${(r.notes || "").trim() || "(none)"}
         </Card>
 
         {/* Dialogue (collapsible) */}
-        <Card bg={colors.box} style={{ gap: 8, paddingVertical: 12 }}>
+        <Card style={{ gap: 8, paddingVertical: 12 }}>
           <Pressable
             onPress={() => setShowDialogue((s) => !s)}
             style={{
@@ -433,7 +433,7 @@ ${(r.notes || "").trim() || "(none)"}
         </Card>
 
         {/* Notes (with edit pencil) */}
-        <Card bg={colors.box} style={{ gap: 8, paddingVertical: 12 }}>
+        <Card style={{ gap: 8, paddingVertical: 12 }}>
           <View
             style={{
               flexDirection: "row",
@@ -564,7 +564,7 @@ function MetaPill({
         flexDirection: "row",
         alignItems: "center",
         gap: 6,
-        backgroundColor: "#0e0e0e",
+        backgroundColor: colors.bg,
         borderWidth: 1,
         borderColor: colors.border,
         paddingHorizontal: 10,
@@ -572,8 +572,8 @@ function MetaPill({
         borderRadius: 9999,
       }}
     >
-      <Ionicons name={icon} size={14} color={colors.muted} />
-      <Text style={{ color: colors.muted, fontSize: 12 }}>{text}</Text>
+      <Ionicons name={icon} size={14} color={colors.fg} />
+      <Text style={{ color: colors.fg, fontSize: 12 }}>{text}</Text>
     </View>
   );
 }
@@ -601,7 +601,7 @@ function ChipBlock({ title, items }: { title: string; items: string[] }) {
           <View
             key={`${title}-${i}`}
             style={{
-              backgroundColor: "#0e0e0e",
+              backgroundColor: colors.bg,
               borderWidth: 1,
               borderColor: colors.border,
               borderRadius: 10,
@@ -627,7 +627,7 @@ function AttributeRow({ label, value }: { label: string; value: number }) {
   return (
     <View
       style={{
-        backgroundColor: "#0e0e0e",
+        backgroundColor: colors.bg,
         borderWidth: 1,
         borderColor: colors.border,
         borderRadius: 10,
@@ -681,7 +681,7 @@ function DialogueRow({ speaker, text }: { speaker?: string; text?: string }) {
         borderRadius: 12,
         borderWidth: 1,
         borderColor: colors.border,
-        backgroundColor: "#0e0e0e",
+        backgroundColor: colors.bg,
       }}
     >
       {/* Speaker pill */}
@@ -690,7 +690,6 @@ function DialogueRow({ speaker, text }: { speaker?: string; text?: string }) {
           alignSelf: "flex-start",
           backgroundColor: bg,
           borderWidth: 1,
-          borderColor: colors.border,
           paddingHorizontal: 10,
           paddingVertical: 4,
           borderRadius: 9999,

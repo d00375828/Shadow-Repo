@@ -36,7 +36,7 @@ export default function AISettings() {
   return (
     <Screen backgroundColor={colors.bg} style={{ padding: 16 }}>
       <PageHeader title="AI Settings" left={<BackButton />} />
-      <Card bg={colors.box} border={colors.border} style={{ gap: 12 }}>
+      <Card style={{ gap: 12 }}>
         <Text
           style={{
             color: total.toFixed(2) === "1.00" ? colors.fg : "#B91C1C",

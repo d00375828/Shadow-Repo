@@ -6,20 +6,22 @@ export const DARK_COLORS = {
   bg: "#0E0E0E",
   fg: "#fff",
   muted: "#A0A3A7",
-  accent: "#00E6C3",
+  accent: "#25b8a6",
   onAccent: "#000",
   box: "#111418",
   border: "#2A2D30",
+  card: "#111",
 };
 
 export const LIGHT_COLORS = {
-  bg: "#F4F0E8",
-  fg: "#0A0A0A",
+  bg: "#d9cfc1",
+  fg: "#66655d",
   muted: "#666",
-  accent: "#00CDBE",
+  accent: "#00E6C3",
   onAccent: "#000",
   box: "#FFF",
   border: "#E4DDD2",
+  card: "#f4f7ee",
 };
 
 const ThemeCtx = createContext<{

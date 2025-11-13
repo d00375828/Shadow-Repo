@@ -12,7 +12,6 @@ import { useAuth, useProfile, useTheme } from "@/context";
 import Card from "../../components/Card";
 import SafeModal from "../../components/SafeModal";
 import Screen from "../../components/Screen";
-import SectionTitle from "../../components/SectionTitle";
 
 const LEADING_ICON_SIZE = 26;
 const CHEVRON_ICON_SIZE = 22;
@@ -34,7 +33,6 @@ function NavCard({
   return (
     <Pressable onPress={onPress} style={{ marginBottom: 12 }}>
       <Card
-        bg={colors.box}
         style={{
           borderColor: colors.border,
           borderWidth: 1,
@@ -192,11 +190,12 @@ export default function SettingsHub() {
         onClose={() => setShowHelp(false)}
         title="Help & Support"
       >
-        <View style={{ gap: 12 }}>
-          <SectionTitle color={colors.fg}>Contact Information</SectionTitle>
-          <Text style={{ color: colors.muted }}>Email: support@shadow.com</Text>
-          <Text style={{ color: colors.muted }}>Phone: 1-800-SHADOW1</Text>
-          <Text style={{ color: colors.muted }}>Hours: 24/7 Support</Text>
+        <View style={{ backgroundColor: colors.card, gap: 12 }}>
+          <Text style={{ color: colors.muted }}>
+            Email: andy@shadowsales.com
+          </Text>
+          <Text style={{ color: colors.muted }}>Text: 435-705-9700</Text>
+          <Text style={{ color: colors.muted }}>Sun - Sat: 9am - 5pm</Text>
         </View>
       </SafeModal>
 

@@ -36,10 +36,7 @@ export default function NotificationsSettings() {
         }
       />
 
-      <Card
-        bg={colors.box}
-        style={{ borderColor: colors.border, borderWidth: 1, gap: 10 }}
-      >
+      <Card style={{ gap: 10 }}>
         <SectionTitle color={colors.fg}>Alerts</SectionTitle>
 
         <ToggleRow
@@ -87,8 +84,8 @@ function ToggleRow({
       <Switch
         value={value}
         onValueChange={onChange}
-        trackColor={{ false: colors.border, true: "#314d25" }}
-        thumbColor={value ? colors.accent : "#777"}
+        trackColor={{ false: colors.border, true: colors.border }}
+        thumbColor={value ? colors.accent : colors.box}
       />
     </View>
   );

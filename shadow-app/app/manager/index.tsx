@@ -28,7 +28,7 @@ const Tile = ({
   return (
     <Link href={href} asChild>
       <Pressable style={{ flex: 1 }}>
-        <Card bg={colors.box} border={colors.accent} style={{ gap: 6 }}>
+        <Card style={{ gap: 6 }}>
           <Text style={{ color: colors.fg, fontWeight: "800", fontSize: 16 }}>
             {title}
           </Text>

@@ -44,7 +44,7 @@ export default function PageHeader({
       {right ?? (
         <Text
           style={{
-            color: colors.border, // match your border color
+            color: colors.border,
             fontSize: 18,
             fontWeight: "900",
             letterSpacing: 0.5,

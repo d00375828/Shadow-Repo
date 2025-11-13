@@ -71,7 +71,7 @@ export default function Branding() {
     <Screen backgroundColor={colors.bg} style={{ padding: 16 }}>
       <PageHeader title="Branding" left={<BackButton />} brandText="SHADOW" />
 
-      <Card bg={colors.box} border={colors.border} style={{ gap: 16 }}>
+      <Card style={{ gap: 16 }}>
         <Field label="Accent" value={accent} onChangeText={setAccent} />
         <Field label="On Accent" value={onAccent} onChangeText={setOnAccent} />
         <Field label="Background" value={bg} onChangeText={setBg} />
