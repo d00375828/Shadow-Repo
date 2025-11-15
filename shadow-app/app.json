@@ -14,7 +14,7 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "bundleIdentifier": "co.shadowapp.mobile",
+      "bundleIdentifier": "co.shadowsales.mobile",
       "buildNumber": "1",
       "supportsTablet": true,
       "infoPlist": {
@@ -34,7 +34,7 @@
         "android.permission.RECORD_AUDIO",
         "android.permission.MODIFY_AUDIO_SETTINGS"
       ],
-      "package": "co.shadowapp.mobile"
+      "package": "co.shadowsales.mobile"
     },
     "web": {
       "bundler": "metro",
