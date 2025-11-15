@@ -1,9 +1,13 @@
 import { AudioMode } from "expo-audio";
 
-export const RECORDING_AUDIO_MODE: Partial<AudioMode> = {
+type BackgroundCapableAudioMode = Partial<AudioMode> & {
+  staysActiveInBackground?: boolean;
+};
+export const RECORDING_AUDIO_MODE: BackgroundCapableAudioMode = {
   allowsRecording: true,
   playsInSilentMode: true,
   shouldPlayInBackground: true,
+  staysActiveInBackground: true, 
   interruptionMode: "doNotMix",
   interruptionModeAndroid: "doNotMix",
   shouldRouteThroughEarpiece: false,
