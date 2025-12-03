@@ -8,10 +8,10 @@ const Ctx = createContext<{
 } | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [isAuthed, setIsAuthed] = useState(true); // default authed for current flows
+  const [isAuthed, setIsAuthed] = useState(false);
 
   useEffect(() => {
-    (async () => setIsAuthed((await getStr(KEYS.isAuthed, "1")) === "1"))();
+    (async () => setIsAuthed((await getStr(KEYS.isAuthed, "0")) === "1"))();
   }, []);
   useEffect(() => {
     setStr(KEYS.isAuthed, isAuthed ? "1" : "0");

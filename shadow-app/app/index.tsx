@@ -1,20 +1,25 @@
-// Login screen
+import React, { useState } from "react";
+import {
+  Modal,
+  Pressable,
+  Text,
+  TextInput,
+  View,
+  useWindowDimensions,
+} from "react-native";
+import { Redirect, router } from "expo-router";
 
-import { Redirect } from "expo-router";
+import { useAuth, useTheme } from "@/context";
+import useIsLandscape from "@/hooks/useIsLandscape";
 
 const faqs = [
   { q: "Forgot password?", a: "Contact your admin to reset your credentials." },
   { q: "Need help?", a: "Email support@shadow.example or check the docs." },
 ];
-// Bypassing the login screen for TestFlight
-export default function Index() {
-  return <Redirect href="/(tabs)/home" />;
-}
-{
-  /* Login screen 
+
 export default function Login() {
   const { colors } = useTheme();
-  const { signIn } = useAuth();
+  const { isAuthed, signIn } = useAuth();
   const isLandscape = useIsLandscape();
   const { width } = useWindowDimensions();
 
@@ -28,6 +33,10 @@ export default function Login() {
   const [error, setError] = useState("");
   const [open, setOpen] = useState(false);
   const [expanded, setExpanded] = useState<number | null>(null);
+
+  if (isAuthed) {
+    return <Redirect href="/(tabs)/home" />;
+  }
 
   async function onSignIn() {
     if (!username.trim() || !password.trim()) {
@@ -212,6 +221,4 @@ export default function Login() {
       </Modal>
     </View>
   );
-}
-  */
 }

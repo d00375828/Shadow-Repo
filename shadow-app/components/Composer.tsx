@@ -38,7 +38,7 @@ export default function Composer({
         placeholderTextColor={colors.muted}
         style={{
           flex: 1,
-          color: colors.fg,
+          color: colors.onAccent,
           borderWidth: 1,
           borderColor: colors.border,
           borderRadius: 12,
