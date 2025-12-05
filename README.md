@@ -2,24 +2,46 @@
 
 Shadow is an AI-powered training app designed to help sales reps improve their communication and performance. The app allows users to record pitches, receive AI-generated feedback, and review detailed performance insights. 
 
+
 ---
 
 ## HIG Implementation
 
-Each screen uses a clear hierarchy, logical grouping, and familiar navigation patterns to help users understand the app’s flow without needing instructions. The bottom tab navigation follows the native iOS layout, giving users quick access to the Record, Insights, Training, Chat, and Settings screens familiarly and predictably. The app’s color theme provides a strong contrast between the background and text.
-
-In Shadow, the large circular **Record** button on the Home screen uses a bold accent color and a microphone icon to instantly convey that it starts a new recording. Similarly, the **Save** and **Delete** buttons in the Recording Review modal are labeled with strong, high-contrast text to ensure users understand the outcome of each action before tapping. Icons throughout the app follow HIG’s guidance to use universally recognizable symbols, such as a **gear** for Settings, a **stats chart** for Insights, and a **chat bubble** for the Chat tab. These icons help users quickly understand navigation without needing to read every label.
-
-When a user begins recording, the Record button expands and pulses to confirm that recording is active. Pressable elements provide subtle opacity changes when tapped, offering immediate visual feedback that an interaction was registered. The **Review Recording** modal slides smoothly up from the bottom of the screen, maintaining a sense of spatial continuity consistent with native iOS transitions. When system permissions—such as microphone or location access—are denied, the app presents a native **Alert dialog** that clearly explains the issue and offers an “Open Settings” option. Additionally, the combination of consistent icons, well-communicated actions, appropriate motion, and native feedback patterns ensures that the app not only looks polished but also behaves in a way users naturally expect from high-quality iOS applications.
+* **Clear Hierarchy, Logical Grouping, and Familiar Navigation:**
+    * I use a clear hierarchy, logical grouping on each screen, and the native iOS-style **bottom tab navigation** for quick access to Record, Insights, Training, Chat, and Settings.
+* **Strong Contrast and Visual Clarity:**
+    * The app's **color theme** providing a strong contrast between the background and text.
+    * The **Save and Delete buttons** in the Recording Review modal being labeled with strong, high-contrast text.
+* **Instantly Convey Action/Purpose:**
+    * The large circular **Record button** on the Home screen using a bold accent color and a microphone icon.
+* **Use Universally Recognizable Icons:**
+    * The icons follow HIG guidance, such as a **gear for Settings**, a **stats chart for Insights**, and a **chat bubble for the Chat tab**.
+* **Provide Immediate Visual Feedback:**
+    * The **Record button expanding and pulsing** when recording is active to confirm the status.
+    * The pressable elements providing **subtle opacity changes when tapped**.
+* **Maintain Spatial Continuity (Appropriate Motion):**
+    * The **Review Recording modal sliding smoothly up** from the bottom, consistent with native iOS transitions.
+* **Use Native System Feedback (Alerts):**
+    * The app presents a **native Alert dialog** that clearly explains the issue and offers an "Open Settings" option when system permissions (like microphone or location access) are denied.
 
 ---
 
 ## HIG Implementation for API
-When the user records a pitch on the **Home screen** and submits it for grading, the app calls `sendRecordingForGrade` in the background while immediately confirming what’s happening through clear system feedback: the user sees an alert that grading is in progress, and another when the grade is ready, instead of being left waiting without context. That remote response is then stored via the `RecordingsProvider` so results load instantly and consistently the next time the user opens the app, matching HIG principles around continuity of experience and making past interactions easily recoverable without re-fetching or re-doing work.
 
-The **Chat screen** applies the same ideas to conversational AI calls. API requests made through `useChat` are reflected directly in the interface with the *“Assistant is thinking…”* bubble inline with the conversation, using a familiar iOS-style message indicator rather than a disconnected global spinner. This keeps system status closely tied to the user’s last action and avoids clutter, while errors from the chat or other calls are surfaced in-line in a short, specific message so the user understands what went wrong and what to do next. Across these flows, asynchronous work never blocks interaction: users can scroll, review content, or navigate away while network or AI tasks complete, aligning with HIG guidance to keep apps responsive and prevent operations from feeling heavy or brittle.
+* **Provide Immediate System Feedback for Asynchronous Tasks (API):**
+    * I immediately confirm the API call (`sendRecordingForGrade`) with an **alert that grading is in progress**, and a second alert when the grade is ready, preventing the user from waiting without context.
+* **Ensure Continuity of Experience (API Data Persistence):**
+    * The API response is being **stored via the `RecordingsProvider`**, so results load instantly and consistently when the user re-opens the app.
+* **Keep System Status Tied to User Action (Chat API):**
+    * The Chat screen where API requests (`useChat`) are reflected in the interface with the **“Assistant is thinking…” bubble inline** with the conversation, using a familiar iOS-style message indicator.
+* **Surface Errors Clearly and Locally (API Error Handling):**
+    * The errors from the chat or other calls are surfaced **in-line in a short, specific message** so the user understands what went wrong and what to do next.
+* **Keep Apps Responsive (Non-Blocking API Operations):**
+    * **asynchronous work never blocking interaction**, allowing users to scroll, review content, or navigate away while network or AI tasks complete.
 
 ---
+
+
 ## Wireframe using Figma
 # Record Page
 <img width="380" height="763" alt="RECORD_WIRE" src="https://github.com/user-attachments/assets/115ffef4-b57a-4ab3-b6a3-2736e3c25ad7" />
