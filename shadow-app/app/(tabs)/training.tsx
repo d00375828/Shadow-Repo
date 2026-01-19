@@ -53,4 +53,4 @@ export default function Training() {
   );
 }
 
-// Testing for luna structure
+// Testing for luna git and supabase connection
