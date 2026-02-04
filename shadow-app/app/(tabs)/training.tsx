@@ -13,6 +13,7 @@ export default function Training() {
   function startRolePlay() {
     // TODO: point this wherever your role-play flow lives.
     // For now, this navigates to /training/roleplay (create that screen when ready).
+
     router.push("/home");
   }
 
@@ -53,7 +54,5 @@ export default function Training() {
   );
 }
 
-// Testing for luna git and supabase connection
-// Another test line for git
-// Line to test luna deployment
-// line to test after combining folders
+// Cutting off fat so I am the only one is working on this
+// I need to docunent what I worked on while on a team and what I did alone
